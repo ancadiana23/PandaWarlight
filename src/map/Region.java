@@ -146,7 +146,7 @@ public class Region {
 		int counter=0;
 		for (Region neighbor : neighbors)
 		{
-			if(!neighbor.ownedByPlayer(enemy))
+			if(neighbor.ownedByPlayer(enemy))
 				counter++;
 		}
 		return counter;
