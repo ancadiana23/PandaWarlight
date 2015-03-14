@@ -123,4 +123,43 @@ public class Region {
 			return playerName;
 	}
 
+	public int armiesNeededToCapture()
+	{
+		return (int) (1.7 * armies);
+	}
+	public int armiesItCanKill()
+	{
+		return (int)(0.6 * armies);
+	}
+	public int getUnknownNeighbors()
+	{
+		int counter=0;
+		for (Region neighbor : neighbors)
+		{
+			if(neighbor.getPlayerName().equals("unknown"))
+				counter++;
+		}
+		return counter;
+	}
+	public int getEnemyNeighbors(String enemy)
+	{
+		int counter=0;
+		for (Region neighbor : neighbors)
+		{
+			if(!neighbor.ownedByPlayer(enemy))
+				counter++;
+		}
+		return counter;
+	}
+	public int getEmptyNeighbors(String enemy, String me)
+	{
+		int counter=0;
+		for (Region neighbor : neighbors)
+		{
+			if(!neighbor.ownedByPlayer(enemy)&&!neighbor.ownedByPlayer(me)&&neighbor.getArmies()!=0)
+				counter++;
+		}
+		return counter;
+	}
+	
 }
