@@ -11,11 +11,12 @@
 package bot;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import map.Map;
+import map.Pair;
 import map.Region;
 import map.SuperRegion;
-
 import move.AttackTransferMove;
 import move.PlaceArmiesMove;
 import move.Move;
@@ -39,6 +40,12 @@ public class BotState {
 
 	private long totalTimebank; //total time that can be in the timebank
 	private long timePerMove; //the amount of time that is added to the timebank per requested move
+	
+	//Start2
+	private LinkedList<Region>myEdgeRegions;
+	private LinkedList<Region>myInnerTerritory;
+	private LinkedList<Pair<SuperRegion>> superRegionsToCapture;
+	//End2
 	
 	public BotState()
 	{
@@ -267,5 +274,83 @@ public class BotState {
 	public ArrayList<Region> getWasteLands(){
 		return wastelands;
 	}
-
+	
+	//Start3
+	public LinkedList<Region> getMyEdgeRegions() {
+		return myEdgeRegions;
+	}
+	
+	public LinkedList<Region> getMyInnerTerritory() {
+		return myInnerTerritory;
+	}
+	
+	public LinkedList<Pair<SuperRegion>> getSuperRegionsToCapture() {
+		return superRegionsToCapture;
+	}
+	
+   
+	public boolean areAllNeighboursAllies(String player, Region reg) {
+		LinkedList<Region> neighbours = reg.getNeighbors();
+		
+		for (Region neighbour : neighbours) 
+			if (!neighbour.ownedByPlayer(player))
+				return false;
+		
+		return true;
+	}
+	/**
+	 * At the beginning of the game,  you have only two regions, so those are certainly
+	 * on the edge of your owned territories.
+	 * @param player
+	 * @param visibleMap
+	 * @return
+	 */
+	public void detMyEdgeRegions() {
+		
+		if (myEdgeRegions == null) {
+			myEdgeRegions = new LinkedList<Region>();
+			
+			for (Region reg : visibleMap.getRegions()) 
+				if (reg.ownedByPlayer(myName))
+					if (!areAllNeighboursAllies(myName, reg))
+						myEdgeRegions.add(reg);
+		}
+		else {
+			for (Region reg : myEdgeRegions) { 
+				if (!reg.ownedByPlayer(myName)) { 
+					for (Region neighbor : reg.getNeighbors())
+						if (neighbor.ownedByPlayer(myName) && 
+							!myEdgeRegions.contains(neighbor))
+							myEdgeRegions.addFirst(neighbor);
+				}
+				else {
+					if (areAllNeighboursAllies(myName, reg)) {
+						myEdgeRegions.remove(reg);
+						if (myInnerTerritory == null)
+							myInnerTerritory = new LinkedList<Region>();
+						myInnerTerritory.add(reg);
+					}
+					for (Region neighbor : reg.getNeighbors())
+						if(!myEdgeRegions.contains(neighbor))
+							if (!areAllNeighboursAllies(myName, neighbor))
+								myEdgeRegions.add(neighbor);
+				}
+			}
+		}
+	}
+	
+	public LinkedList<Pair<Region>> getRegionsPriority() {
+		LinkedList<Pair<Region>> regionsPriority = new LinkedList<Pair<Region>>();
+		
+		for (Region reg : myEdgeRegions) {
+			int enemyArmies = 0;
+			for (Region neighbor : reg.getNeighbors())
+				if (neighbor.ownedByPlayer(opponentName))
+					enemyArmies += neighbor.getArmies() - 1;
+			regionsPriority.add(new Pair<Region>(reg, enemyArmies - reg.getArmies()));
+		}
+		
+		return regionsPriority;
+	}
+	//End3
 }

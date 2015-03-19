@@ -64,4 +64,8 @@ public class SuperRegion {
 	public LinkedList<Region> getSubRegions() {
 		return subRegions;
 	}
+	
+	public float getValue() {
+		return (float)armiesReward / subRegions.size();
+	}
 }
