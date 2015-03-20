@@ -138,6 +138,17 @@ public class BotStarter implements Bot
 		//conquer
 		//slash
 		//kill
+		for (Pair<SuperRegion> pair : superRegionsToCapture) {
+			SuperRegion superRegion =  pair.getRegion();
+			for (Region region : superRegion.getSubRegions()) 
+				for (Region neighbor : region.getNeighbors()) 
+					if (neighbor.ownedByPlayer(myName)) 
+					{
+						int neededArmies = region.armiesNeededToCapture();
+						if (armiesLeft >= neededArmies)
+							placeArmiesMoves.add(new PlaceArmiesMove(myName, neighbor, neededArmies));
+					}
+		}
 		
 		
 		
