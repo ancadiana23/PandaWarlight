@@ -53,6 +53,7 @@ public class BotState {
 	{
 		opponentMoves = new ArrayList<Move>();
 		roundNumber = 0;
+		myInnerTerritory = new LinkedList<Region>();
 	}
 	
 	public void updateSettings(String key, String[] parts)
@@ -316,26 +317,33 @@ public class BotState {
 				if (reg.ownedByPlayer(myName))
 					if (!areAllNeighboursAllies(myName, reg))
 						myEdgeRegions.add(reg);
+					else
+						myInnerTerritory.add(reg);
 		}
 		else {
 			for (Region reg : myEdgeRegions) { 
 				if (!reg.ownedByPlayer(myName)) { 
 					for (Region neighbor : reg.getNeighbors())
 						if (neighbor.ownedByPlayer(myName) && 
-							!myEdgeRegions.contains(neighbor))
+							!myEdgeRegions.contains(neighbor)) {
+							
 							myEdgeRegions.addFirst(neighbor);
+							if (myInnerTerritory.contains(neighbor))
+								myInnerTerritory.remove(neighbor);
+							}
 				}
 				else {
 					if (areAllNeighboursAllies(myName, reg)) {
 						myEdgeRegions.remove(reg);
-						if (myInnerTerritory == null)
-							myInnerTerritory = new LinkedList<Region>();
 						myInnerTerritory.add(reg);
 					}
 					for (Region neighbor : reg.getNeighbors())
-						if(!myEdgeRegions.contains(neighbor))
-							if (!areAllNeighboursAllies(myName, neighbor))
-								myEdgeRegions.add(neighbor);
+							if (!areAllNeighboursAllies(myName, neighbor)){
+								if(!myEdgeRegions.contains(neighbor))
+									myEdgeRegions.add(neighbor);
+							}
+							else if (!myInnerTerritory.contains(neighbor))
+								myInnerTerritory.add(neighbor);
 				}
 			}
 		}
