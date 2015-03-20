@@ -75,7 +75,7 @@ public class SuperRegion {
 		int count=0;
 		for(Region region : subRegions)
 		{
-			if(!region.ownedByPlayer(BotState.INSTANCE.getMyPlayerName()))
+			if(!region.ownedByPlayer(BotState.getInstance().getMyPlayerName()))
 				count++;
 		}
 		return count;

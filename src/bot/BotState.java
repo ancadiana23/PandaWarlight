@@ -23,7 +23,7 @@ import move.Move;
 
 public class BotState {
 	
-	public static BotState INSTANCE;
+	private static BotState instance=new BotState();
 	
 	private String myName = "";
 	private String opponentName = "";
@@ -241,7 +241,10 @@ public class BotState {
 			}
 		}
 	}
-	
+	public static BotState getInstance()
+	{
+		return instance;
+	}
 	public String getMyPlayerName(){
 		return myName;
 	}
