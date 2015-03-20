@@ -26,8 +26,8 @@ public class Pair<V> implements Comparable<Pair<V>>{
 		int compareResult = priority.compareTo(pair.priority);
 		if (compareResult == 0)
 			if (region instanceof SuperRegion) {
-				Integer thisReg = (Integer)((SuperRegion)region).getSubRegions().size();
-				Integer otherReg = (Integer)((SuperRegion)pair.region).getSubRegions().size();
+				Integer thisReg = (Integer)((SuperRegion)region).regionsNotConquered();
+				Integer otherReg = (Integer)((SuperRegion)pair.region).regionsNotConquered();
 				
 				return thisReg.compareTo(otherReg);
 			}	

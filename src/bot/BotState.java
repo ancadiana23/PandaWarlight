@@ -23,6 +23,8 @@ import move.Move;
 
 public class BotState {
 	
+	public static BotState INSTANCE;
+	
 	private String myName = "";
 	private String opponentName = "";
 	

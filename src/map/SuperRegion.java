@@ -11,6 +11,8 @@
 package map;
 import java.util.LinkedList;
 
+import bot.BotState;
+
 public class SuperRegion {
 	
 	private int id;
@@ -67,5 +69,15 @@ public class SuperRegion {
 	
 	public float getValue() {
 		return (float)armiesReward / subRegions.size();
+	}
+	public int regionsNotConquered()
+	{
+		int count=0;
+		for(Region region : subRegions)
+		{
+			if(!region.ownedByPlayer(BotState.INSTANCE.getMyPlayerName()))
+				count++;
+		}
+		return count;
 	}
 }
