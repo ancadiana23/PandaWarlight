@@ -140,10 +140,15 @@ public class Region {
 
 	public int getEnemyNeighbors(String enemy) {
 		int counter = 0;
+		System.err.println("Search visible neighbors for region:"+this.id);
+		System.err.println("Neighbors:" + this.neighbors.size());
+		System.err.println(enemy);
 		for (Region neighbor : neighbors) {
+			System.err.println(neighbor.playerName + "with id "+neighbor.id);
 			if (neighbor.ownedByPlayer(enemy))
 				counter++;
 		}
+		System.err.println("No enemies found "+counter);
 		return counter;
 	}
 

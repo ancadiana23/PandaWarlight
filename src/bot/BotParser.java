@@ -23,11 +23,13 @@ public class BotParser {
 	
 	final Bot bot;
 	
+	final BotState currentState;
 	
 	public BotParser(Bot bot)
 	{
 		this.scan = new Scanner(System.in);
 		this.bot = bot;
+		this.currentState= new BotState();
 	}
 	
 	public void run()
@@ -39,8 +41,8 @@ public class BotParser {
 			String[] parts = line.split(" ");
 			if(parts[0].equals("pick_starting_region")) //pick which regions you want to start with
 			{
-				BotState.getInstance().setPickableStartingRegions(parts);
-				Region startingRegion = bot.getStartingRegion(BotState.getInstance(), Long.valueOf(parts[1]));
+				currentState.setPickableStartingRegions(parts);
+				Region startingRegion = bot.getStartingRegion(currentState, Long.valueOf(parts[1]));
 				
 				System.out.println(startingRegion.getId());
 			}
@@ -51,14 +53,14 @@ public class BotParser {
 				if(parts[1].equals("place_armies")) 
 				{
 					//place armies
-					ArrayList<PlaceArmiesMove> placeArmiesMoves = bot.getPlaceArmiesMoves(BotState.getInstance(),Long.valueOf(parts[2]));
+					ArrayList<PlaceArmiesMove> placeArmiesMoves = bot.getPlaceArmiesMoves(currentState,Long.valueOf(parts[2]));
 					for(PlaceArmiesMove move : placeArmiesMoves)
 						output = output.concat(move.getString() + ",");
 				} 
 				else if(parts[1].equals("attack/transfer")) 
 				{
 					//attack/transfer
-					ArrayList<AttackTransferMove> attackTransferMoves = bot.getAttackTransferMoves(BotState.getInstance(),Long.valueOf(parts[2]));
+					ArrayList<AttackTransferMove> attackTransferMoves = bot.getAttackTransferMoves(currentState,Long.valueOf(parts[2]));
 					for(AttackTransferMove move : attackTransferMoves)
 						output = output.concat(move.getString() + ",");
 				}
@@ -68,16 +70,16 @@ public class BotParser {
 					System.out.println("No moves");
 			} else if(parts[0].equals("settings")) {
 				//update settings
-				BotState.getInstance().updateSettings(parts[1], parts);
+				currentState.updateSettings(parts[1], parts);
 			} else if(parts[0].equals("setup_map")) {
 				//initial full map is given
-				BotState.getInstance().setupMap(parts);
+				currentState.setupMap(parts);
 			} else if(parts[0].equals("update_map")) {
 				//all visible regions are given
-				BotState.getInstance().updateMap(parts);
+				currentState.updateMap(parts);
 			} else if(parts[0].equals("opponent_moves")) {
 				//all visible opponent moves are given
-				BotState.getInstance().readOpponentMoves(parts);
+				currentState.readOpponentMoves(parts);
 			} else {
 				System.err.printf("Unable to parse line \"%s\"\n", line);
 			}
