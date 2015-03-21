@@ -85,6 +85,7 @@ public class BotStarter implements Bot {
 
 		LinkedList<Pair<Region>> priorityRegions = state.getRegionsPriority();
 		Collections.sort(priorityRegions);
+<<<<<<< HEAD
 
 		if (visibleEnemies) {
 			// System.err.println("Visible enemies!");
@@ -105,10 +106,30 @@ public class BotStarter implements Bot {
 					System.err.println("ArmiesLeftaftermove" + armiesLeft);
 				}
 
+=======
+		
+		if (visibleEnemies) {
+			System.err.println("Visible enemies!");
+			//apply strategy for vis enemies
+			for (Pair<Region> pair : priorityRegions) {
+				Region region = pair.getRegion();
+				int enemyArmies = (int) Math.abs(pair.getPriority() + region.getArmies());
+				int neededArmies = (int)(Math.round((enemyArmies * 0.6)) - region.getArmies() + 1);
+				System.err.println("Enemy armies: " + enemyArmies);
+				System.err.println("before if needed " + neededArmies + " armiesL:" + armiesLeft);
+				if (neededArmies > 0 && neededArmies <= armiesLeft) {
+					System.err.println("Needed armies: " + neededArmies);
+					placeArmiesMoves.add(new PlaceArmiesMove(myName, region, neededArmies));
+					armiesLeft -= neededArmies;
+					System.err.println("ArmiesLeftaftermove"+armiesLeft);
+				}
+				
+>>>>>>> origin/progress
 				if (armiesLeft <= 0)
 					return placeArmiesMoves;
 			}
 		}
+<<<<<<< HEAD
 		// extend
 		// Get the SuperRegions we want to capture first
 		LinkedList<Pair<SuperRegion>> superRegionsToCapture = state
@@ -119,10 +140,21 @@ public class BotStarter implements Bot {
 
 			if (superRegionsToCapture.get(i).getRegion().ownedByPlayer()
 					.equals(myName)) {
+=======
+//		//extend
+//		//Get the SuperRegions we want to capture first
+		LinkedList<Pair<SuperRegion>> superRegionsToCapture = state.getSuperRegionsToCapture();
+//		
+//		//See if some of the targets are captured and remove them
+		for (int i = 0; i < superRegionsToCapture.size(); i++) {
+		
+			if (superRegionsToCapture.get(i).getRegion().ownedByPlayer().equals(myName)) {
+>>>>>>> origin/progress
 				superRegionsToCapture.remove(i);
 				i--;
 			}
 		}
+<<<<<<< HEAD
 
 		if (superRegionsToCapture.isEmpty())
 			System.err.println(" sr EMPTY!!!");
@@ -138,10 +170,23 @@ public class BotStarter implements Bot {
 					if (!superRegion.ownedByPlayer().equals(myName)) {
 						Pair<SuperRegion> pair = new Pair<SuperRegion>(
 								superRegion, superRegion.getValue());
+=======
+		
+		if (superRegionsToCapture.isEmpty())
+			System.err.println(" sr EMPTY!!!");
+		//If we're done capturing all the planned SuperRegions, add new targets
+		if (superRegionsToCapture.isEmpty()) {
+			for (Region reg : myEdgeRegions) {
+				for (Region neighbor : reg.getNeighbors()) {
+					SuperRegion superRegion = neighbor.getSuperRegion();
+					if (!superRegion.ownedByPlayer().equals(myName)) {
+						Pair<SuperRegion> pair = new Pair<SuperRegion>(superRegion, superRegion.getValue());
+>>>>>>> origin/progress
 						if (!superRegionsToCapture.contains(pair))
 							superRegionsToCapture.add(pair);
 					}
 				}
+<<<<<<< HEAD
 
 			}
 		}
@@ -178,6 +223,54 @@ public class BotStarter implements Bot {
 		// End1
 
 		while (armiesLeft > 0) {
+=======
+					
+			}
+		}
+		
+		//Sort the targets by priority (biggest priority first) 
+		//and by size if priorities are equal (smallest SuperRegions first)
+		Collections.sort(superRegionsToCapture);
+	
+//		//This is...SPARTAAAAAAAAAAAAAAAAAAAA
+//		
+//		//conquer
+//		//slash
+//		//kill
+		for(Pair<SuperRegion> pair : superRegionsToCapture)
+			System.err.println("sup: " + pair.getRegion().getId() + "  prior: " + pair.getPriority());
+		for (Pair<SuperRegion> pair : superRegionsToCapture) {
+			SuperRegion superRegion =  pair.getRegion();
+			System.err.println("superreg to deploy: " + superRegion.getId());
+			for (Region reg : superRegion.getSubRegions())
+				System.err.println("subreg: " + reg.getId());
+			for (Region region : myEdgeRegions) {
+				System.err.println("region : " + region.getId());
+				for (Region neighbor : region.getNeighbors()) {
+					System.err.println("neigh: " + neighbor.getId() + "own: " + neighbor.getPlayerName());
+					System.err.println("contains? " +  superRegion.getSubRegions().contains(neighbor));//just...why?
+					
+					System.err.println("contains2222? " +  (neighbor.getSuperRegion().getId() == superRegion.getId()));
+					System.err.println("owned?: " + neighbor.ownedByPlayer("neutral"));
+					if (neighbor.getSuperRegion().getId() == superRegion.getId() && neighbor.ownedByPlayer("neutral"))  
+					{
+						int neededArmies = neighbor.armiesNeededToCapture();
+						System.err.println("extend Armies left: " + armiesLeft + " arm Need: " + neededArmies);
+						if (armiesLeft >= neededArmies) {
+							placeArmiesMoves.add(new PlaceArmiesMove(myName, region, neededArmies));
+							armiesLeft -= neededArmies;
+						}
+					}
+				}
+			}
+		}
+//		
+//		
+		//End1
+		System.err.println("Random placement:..armies: " + armiesLeft);
+		while(armiesLeft > 0)
+		{
+>>>>>>> origin/progress
 			double rand = Math.random();
 			int r = (int) (rand * visibleRegions.size());
 			Region region = visibleRegions.get(r);

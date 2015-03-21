@@ -22,7 +22,13 @@ public class BotParser {
 	final Scanner scan;
 	
 	final Bot bot;
+<<<<<<< HEAD
 
+=======
+	
+	BotState currentState;
+	
+>>>>>>> origin/progress
 	public BotParser(Bot bot)
 	{
 		this.scan = new Scanner(System.in);
