@@ -192,8 +192,11 @@ public class BotState {
 
 		// remove regions which are unknown.
 		for (Region region : visibleMap.regions)
+		{
+//			System.err.println(region.getId()+"  "+region.getPlayerName()+"  "+region.getArmies());
 			if (region.getPlayerName().equals("unknown"))
 				unknownRegions.add(region);
+		}
 		for (Region unknownRegion : unknownRegions)
 			visibleMap.getRegions().remove(unknownRegion);
 	}
@@ -299,12 +302,14 @@ public class BotState {
 	}
 
 	public boolean areAllNeighboursAllies(String player, Region reg) {
-		LinkedList<Region> neighbours = reg.getNeighbors();
-
-		for (Region neighbour : neighbours)
-			if (!neighbour.ownedByPlayer(player))
+		ArrayList<Integer> neighbors = reg.getNeighbors();
+		Region neighbor;
+		for (int neighborId : neighbors)
+		{
+			neighbor=getInstance().getVisibleMap().getRegion(neighborId);
+			if (!neighbor.ownedByPlayer(player))
 				return false;
-
+		}
 		return true;
 	}
 
@@ -318,6 +323,7 @@ public class BotState {
 	 */
 	public void detMyEdgeRegions() {
 
+		System.err.println("Det edge Regions");
 		if (myEdgeRegions == null) {
 			myEdgeRegions = new LinkedList<Region>();
 			LinkedList<Region> regions = visibleMap.getRegions();
@@ -335,9 +341,9 @@ public class BotState {
 					Region reg = myEdgeRegions.get(i);
 					if (!reg.ownedByPlayer(myName)) {
 						// for (Region neighbor : reg.getNeighbors())
-						LinkedList<Region> neighbors = reg.getNeighbors();
+						ArrayList<Integer> neighbors = reg.getNeighbors();
 						for (int j = 0; j < neighbors.size(); ++j) {
-							Region neighbor = neighbors.get(j);
+							Region neighbor = getInstance().getVisibleMap().getRegion(neighbors.get(j));
 							if (neighbor.ownedByPlayer(myName)
 									&& !myEdgeRegions.contains(neighbor)) {
 
@@ -353,9 +359,9 @@ public class BotState {
 							i--;
 							myInnerTerritory.add(reg);
 						}
-						LinkedList<Region> neighbors = reg.getNeighbors();
+						ArrayList<Integer> neighbors = reg.getNeighbors();
 						for (int j = 0 ; j < neighbors.size(); j++) {
-							Region neighbor = neighbors.get(j);
+							Region neighbor = getInstance().getVisibleMap().getRegion(neighbors.get(j));
 							if (!areAllNeighboursAllies(myName, neighbor)) {
 								if (!myEdgeRegions.contains(neighbor)) {
 									myEdgeRegions.add(neighbor);
@@ -367,6 +373,7 @@ public class BotState {
 					}
 				}
 		}
+		System.err.println(myEdgeRegions.size());
 	}
 
 	public LinkedList<Pair<Region>> getRegionsPriority() {
@@ -374,9 +381,13 @@ public class BotState {
 
 		for (Region reg : myEdgeRegions) {
 			int enemyArmies = 0;
-			for (Region neighbor : reg.getNeighbors())
+			Region neighbor;
+			for (int neighborId : reg.getNeighbors())
+			{
+				neighbor=getInstance().getVisibleMap().getRegion(neighborId);
 				if (neighbor.ownedByPlayer(opponentName))
 					enemyArmies += neighbor.getArmies() - 1;
+			}
 			regionsPriority.add(new Pair<Region>(reg, enemyArmies
 					- reg.getArmies()));
 		}

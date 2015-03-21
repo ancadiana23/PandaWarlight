@@ -10,12 +10,16 @@
 
 package map;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+
+import bot.BotState;
 
 public class Region {
 
 	private int id;
-	private LinkedList<Region> neighbors;
+	// private LinkedList<Region> neighbors;
+	private ArrayList<Integer> neighbors;
 	private SuperRegion superRegion;
 	private int armies;
 	private String playerName;
@@ -23,7 +27,7 @@ public class Region {
 	public Region(int id, SuperRegion superRegion) {
 		this.id = id;
 		this.superRegion = superRegion;
-		this.neighbors = new LinkedList<Region>();
+		this.neighbors = new ArrayList<Integer>();
 		this.playerName = "unknown";
 		this.armies = 0;
 
@@ -33,7 +37,7 @@ public class Region {
 	public Region(int id, SuperRegion superRegion, String playerName, int armies) {
 		this.id = id;
 		this.superRegion = superRegion;
-		this.neighbors = new LinkedList<Region>();
+		this.neighbors = new ArrayList<Integer>();
 		this.playerName = playerName;
 		this.armies = armies;
 
@@ -41,8 +45,8 @@ public class Region {
 	}
 
 	public void addNeighbor(Region neighbor) {
-		if (!neighbors.contains(neighbor)) {
-			neighbors.add(neighbor);
+		if (!neighbors.contains(neighbor.id)) {
+			neighbors.add(neighbor.id);
 			neighbor.addNeighbor(this);
 		}
 	}
@@ -96,7 +100,7 @@ public class Region {
 	/**
 	 * @return A list of this Region's neighboring Regions
 	 */
-	public LinkedList<Region> getNeighbors() {
+	public ArrayList<Integer> getNeighbors() {
 		return neighbors;
 	}
 
@@ -131,8 +135,9 @@ public class Region {
 
 	public int getUnknownNeighbors() {
 		int counter = 0;
-		for (Region neighbor : neighbors) {
-			if (neighbor.getPlayerName().equals("unknown"))
+		for (int neighbor : neighbors) {
+			if (BotState.getInstance().getVisibleMap().getRegion(neighbor)
+					.getPlayerName().equals("unknown"))
 				counter++;
 		}
 		return counter;
@@ -140,28 +145,30 @@ public class Region {
 
 	public int getEnemyNeighbors(String enemy) {
 		int counter = 0;
-		System.err.println("Search visible neighbors for region:"+this.id);
-		System.err.println("Neighbors:" + this.neighbors.size());
-		System.err.println(enemy);
-		for (Region neighbor : neighbors) {
-			System.err.println(neighbor.playerName + "with id "+neighbor.id);
-			if (neighbor.ownedByPlayer(enemy))
+		// System.err.println("Search visible neighbors for region:"+this.id);
+		// System.err.println("Neighbors:" + this.neighbors.size());
+		for (int neighbor : neighbors) {
+			// System.err.println(neighbor.playerName + "with id "+neighbor.id);
+			// System.err.println(BotState.getInstance().getVisibleMap().getRegion(neighbor.id).playerName);
+			if (BotState.getInstance().getVisibleMap().getRegion(neighbor)
+					.ownedByPlayer(enemy))
 				counter++;
 		}
-		System.err.println("No enemies found "+counter);
+		// System.err.println("No enemies found "+counter);
 		return counter;
 	}
 
 	public int getEmptyNeighbors(String enemy, String me) {
 		int counter = 0;
-		for (Region neighbor : neighbors) {
+		Region neighbor;
+		for (int neighborId : neighbors) {
+			neighbor = BotState.getInstance().getVisibleMap()
+					.getRegion(neighborId);
 			if (!neighbor.ownedByPlayer(enemy) && !neighbor.ownedByPlayer(me)
 					&& neighbor.getArmies() != 0)
 				counter++;
 		}
 		return counter;
 	}
-	
-	
 
 }
