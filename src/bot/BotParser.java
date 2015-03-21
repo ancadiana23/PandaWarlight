@@ -23,7 +23,7 @@ public class BotParser {
 	
 	final Bot bot;
 	
-	final BotState currentState;
+	BotState currentState;
 	
 	public BotParser(Bot bot)
 	{

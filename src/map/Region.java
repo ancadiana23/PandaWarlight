@@ -122,11 +122,11 @@ public class Region {
 	}
 
 	public int armiesNeededToCapture() {
-		return (int) (1.7 * armies);
+		return (int) Math.round((1.7 * armies));
 	}
 
 	public int armiesItCanKill() {
-		return (int) (0.6 * armies);
+		return (int) Math.round((0.6 * armies));
 	}
 
 	public int getUnknownNeighbors() {

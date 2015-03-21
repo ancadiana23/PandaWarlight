@@ -377,6 +377,7 @@ public class BotState {
 			for (Region neighbor : reg.getNeighbors())
 				if (neighbor.ownedByPlayer(opponentName))
 					enemyArmies += neighbor.getArmies() - 1;
+			System.err.println("det: enemy: " + enemyArmies + " mine: " + reg.getArmies());
 			regionsPriority.add(new Pair<Region>(reg, enemyArmies
 					- reg.getArmies()));
 		}
