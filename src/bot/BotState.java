@@ -17,7 +17,6 @@ import java.util.LinkedList;
 import map.Map;
 import map.Region;
 import map.SuperRegion;
-import map.Territory;
 import move.AttackTransferMove;
 import move.PlaceArmiesMove;
 import move.Move;
@@ -305,9 +304,11 @@ public class BotState {
 	public boolean areAllNeighboursAllies(String player, Region reg) {
 		ArrayList<Integer> neighbors = reg.getNeighbors();
 		Region neighbor;
-		for (int neighborId : neighbors)
+		for (Integer neighborId : neighbors)
 		{
-			neighbor=getInstance().getVisibleMap().getRegion(neighborId);
+			neighbor=visibleMap.getRegion(neighborId.intValue());
+			if (neighbor == null)
+				return false;
 			if (!neighbor.ownedByPlayer(player))
 				return false;
 		}
@@ -343,7 +344,9 @@ public class BotState {
 						// for (Region neighbor : reg.getNeighbors())
 						ArrayList<Integer> neighbors = reg.getNeighbors();
 						for (int j = 0; j < neighbors.size(); ++j) {
-							Region neighbor = getInstance().getVisibleMap().getRegion(neighbors.get(j));
+							Region neighbor = visibleMap.getRegion(neighbors.get(j).intValue());
+							if (neighbor == null)
+								continue;
 							if (neighbor.ownedByPlayer(myName)
 									&& !myEdgeRegions.contains(neighbor)) {
 
@@ -353,6 +356,9 @@ public class BotState {
 									myInnerTerritory.remove(neighbor);
 							}
 						}
+						
+						myEdgeRegions.remove(reg);
+						i--;
 					} else {
 						if (areAllNeighboursAllies(myName, reg)) {
 							myEdgeRegions.remove(reg);
@@ -361,12 +367,13 @@ public class BotState {
 						}
 						ArrayList<Integer> neighbors = reg.getNeighbors();
 						for (int j = 0 ; j < neighbors.size(); j++) {
-							Region neighbor = getInstance().getVisibleMap().getRegion(neighbors.get(j));
-							if (!areAllNeighboursAllies(myName, neighbor)) {
-								if (!myEdgeRegions.contains(neighbor)) {
-									myEdgeRegions.add(neighbor);
-									i++;
-								}
+							Region neighbor = visibleMap.getRegion(neighbors.get(j).intValue());
+							if (neighbor.ownedByPlayer(myName))
+								if (!areAllNeighboursAllies(myName, neighbor)) {
+									if (!myEdgeRegions.contains(neighbor)) {
+										myEdgeRegions.add(neighbor);
+										i++;
+									}
 							} else if (!myInnerTerritory.contains(neighbor))
 								myInnerTerritory.add(neighbor);
 						}

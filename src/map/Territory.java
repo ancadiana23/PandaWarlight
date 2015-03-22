@@ -12,7 +12,7 @@ public abstract class Territory implements Comparable<Territory>{
 	}
 	@Override
 	public int compareTo(Territory territory) {
-		return territory.getPriority().compareTo(this.getPriority());
+		return -this.getPriority().compareTo(territory.getPriority());
 	}
 	public abstract void computePriority(String opponentName);
 }

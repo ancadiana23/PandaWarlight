@@ -103,9 +103,10 @@ public class Map {
 	 */
 	public Region getRegion(int id)
 	{
-		for(Region region : regions)
+		for(Region region : regions) {
 			if(region.getId() == id)
 				return region;
+		}
 		return null;
 	}
 	
