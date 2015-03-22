@@ -337,7 +337,6 @@ public class BotState {
 						myInnerTerritory.add(reg);
 			}
 		} else {
-			if (myEdgeRegions.isEmpty())
 				for (int i = 0; i < myEdgeRegions.size(); ++i) {
 					Region reg = myEdgeRegions.get(i);
 					if (!reg.ownedByPlayer(myName)) {
