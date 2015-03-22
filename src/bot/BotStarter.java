@@ -132,9 +132,10 @@ public class BotStarter implements Bot {
 					neighbor = visibleMap.getRegion(neighborId);
 					SuperRegion superRegion = neighbor.getSuperRegion();
 					if (!superRegion.ownedByPlayer().equals(myName)) {
-						if (!superRegionsToCapture.contains(superRegion))
+						if (!superRegionsToCapture.contains(superRegion)) {
 							superRegion.computePriority(state.getOpponentPlayerName());
 							superRegionsToCapture.add(superRegion);
+						}
 						
 					}
 				}
@@ -144,7 +145,7 @@ public class BotStarter implements Bot {
 		// Sort the targets by priority (biggest priority first)
 		// and by size if priorities are equal (smallest SuperRegions first)
 		Collections.sort(superRegionsToCapture);
-
+		
 		// //This is...SPARTAAAAAAAAAAAAAAAAAAAA
 		//
 		// //conquer
