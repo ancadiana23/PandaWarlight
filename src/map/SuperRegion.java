@@ -9,75 +9,89 @@
  */
 
 package map;
+
 import java.util.LinkedList;
 
 import bot.BotState;
 
-public class SuperRegion {
-	
+public class SuperRegion extends Territory {
+
 	private int id;
 	private int armiesReward;
 	private LinkedList<Region> subRegions;
-	
-	public SuperRegion(int id, int armiesReward)
-	{
+
+	public SuperRegion(int id, int armiesReward) {
 		this.id = id;
 		this.armiesReward = armiesReward;
 		subRegions = new LinkedList<Region>();
 	}
-	
-	public void addSubRegion(Region subRegion)
-	{
-		if(!subRegions.contains(subRegion))
+
+	public void addSubRegion(Region subRegion) {
+		if (!subRegions.contains(subRegion))
 			subRegions.add(subRegion);
 	}
-	
+
 	/**
-	 * @return A string with the name of the player that fully owns this SuperRegion
+	 * @return A string with the name of the player that fully owns this
+	 *         SuperRegion
 	 */
-	public String ownedByPlayer()
-	{
+	public String ownedByPlayer() {
 		String playerName = subRegions.getFirst().getPlayerName();
-		for(Region region : subRegions)
-		{
+		for (Region region : subRegions) {
 			if (!playerName.equals(region.getPlayerName()))
 				return null;
 		}
 		return playerName;
 	}
-	
+
 	/**
 	 * @return The id of this SuperRegion
 	 */
 	public int getId() {
 		return id;
 	}
-	
+
 	/**
-	 * @return The number of armies a Player is rewarded when he fully owns this SuperRegion
+	 * @return The number of armies a Player is rewarded when he fully owns this
+	 *         SuperRegion
 	 */
 	public int getArmiesReward() {
 		return armiesReward;
 	}
-	
+
 	/**
 	 * @return A list with the Regions that are part of this SuperRegion
 	 */
 	public LinkedList<Region> getSubRegions() {
 		return subRegions;
 	}
-	
+
 	public float getValue() {
-		return (float)armiesReward / subRegions.size();
+		return (float) armiesReward / subRegions.size();
 	}
-	public int regionsNotConquered()
-	{
-		int count=0;
-		for(Region region : subRegions)
-		{
-			if(!region.ownedByPlayer(BotState.getInstance().getMyPlayerName()))
+
+	public int regionsNotConquered() {
+		int count = 0;
+		for (Region region : subRegions) {
+			if (!region.ownedByPlayer(BotState.getInstance().getMyPlayerName()))
 				count++;
 		}
 		return count;
+	}
+
+	@Override
+	public int compareTo(Territory territory) {
+		if (this.getPriority()==territory.getPriority())
+		{
+			Integer thisReg = this.regionsNotConquered();
+			Integer otherReg = (Integer) ((SuperRegion) territory).regionsNotConquered();
+			return thisReg.compareTo(otherReg);
+		}else
+		return super.compareTo(territory);
+	}
+
+	@Override
+	public void computePriority(String opponentName) {
+		this.setPriority(this.getValue());
 	}
 }

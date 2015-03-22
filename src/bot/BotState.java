@@ -11,12 +11,13 @@
 package bot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 
 import map.Map;
-import map.Pair;
 import map.Region;
 import map.SuperRegion;
+import map.Territory;
 import move.AttackTransferMove;
 import move.PlaceArmiesMove;
 import move.Move;
@@ -57,7 +58,7 @@ public class BotState {
 	// Start2
 	private LinkedList<Region> myEdgeRegions;
 	private LinkedList<Region> myInnerTerritory;
-	private LinkedList<Pair<SuperRegion>> superRegionsToCapture;
+	private LinkedList<SuperRegion> superRegionsToCapture;
 
 	// End2
 
@@ -65,7 +66,7 @@ public class BotState {
 		opponentMoves = new ArrayList<Move>();
 		roundNumber = 0;
 		myInnerTerritory = new LinkedList<Region>();
-		superRegionsToCapture = new LinkedList<Pair<SuperRegion>>();
+		superRegionsToCapture = new LinkedList<SuperRegion>();
 	}
 
 	public void updateSettings(String key, String[] parts) {
@@ -297,7 +298,7 @@ public class BotState {
 
 	
 	
-	public LinkedList<Pair<SuperRegion>> getSuperRegionsToCapture() {
+	public LinkedList<SuperRegion> getSuperRegionsToCapture() {
 		return superRegionsToCapture;
 	}
 
@@ -375,25 +376,20 @@ public class BotState {
 		}
 		System.err.println(myEdgeRegions.size());
 	}
-
-	public LinkedList<Pair<Region>> getRegionsPriority() {
-		LinkedList<Pair<Region>> regionsPriority = new LinkedList<Pair<Region>>();
-
-		for (Region reg : myEdgeRegions) {
-			int enemyArmies = 0;
-			Region neighbor;
-			for (int neighborId : reg.getNeighbors())
-			{
-				neighbor=getInstance().getVisibleMap().getRegion(neighborId);
-				if (neighbor.ownedByPlayer(opponentName))
-					enemyArmies += neighbor.getArmies() - 1;
-			System.err.println("det: enemy: " + enemyArmies + " mine: " + reg.getArmies());
-			}
-			regionsPriority.add(new Pair<Region>(reg, enemyArmies
-					- reg.getArmies()));
-		}
-
-		return regionsPriority;
+	public void sortRegions(LinkedList<Region> regions)
+	{
+		for(Region region : regions)
+			region.computePriority(opponentName);
+		Collections.sort(regions);
 	}
+//	public LinkedList<Region> getRegionsPriority() {
+//		LinkedList<Region> regionsPriority = new LinkedList<Region>();
+//
+//		for (Region reg : myEdgeRegions) {
+//			regionsPriority.add(new Pair<Region>(reg, reg.computePriority(opponentName)));
+//		}
+//
+//		return regionsPriority;
+//	}
 	// End3
 }

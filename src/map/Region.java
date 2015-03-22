@@ -15,7 +15,7 @@ import java.util.LinkedList;
 
 import bot.BotState;
 
-public class Region {
+public class Region extends Territory {
 
 	private int id;
 	// private LinkedList<Region> neighbors;
@@ -132,6 +132,10 @@ public class Region {
 	public int armiesItCanKill() {
 		return (int) Math.round((0.6 * armies));
 	}
+	public int armiesNeededToDefend(){
+		int enemyArmies = (int) Math.abs(getPriority() + getArmies());
+		return (int) (Math.round((enemyArmies * 0.6)) - getArmies() + 1);
+	}
 
 	public int getUnknownNeighbors() {
 		int counter = 0;
@@ -162,13 +166,26 @@ public class Region {
 		int counter = 0;
 		Region neighbor;
 		for (int neighborId : neighbors) {
-			neighbor = BotState.getInstance().getVisibleMap()
-					.getRegion(neighborId);
+			neighbor = BotState.getInstance().getVisibleMap().getRegion(neighborId);
 			if (!neighbor.ownedByPlayer(enemy) && !neighbor.ownedByPlayer(me)
 					&& neighbor.getArmies() != 0)
 				counter++;
 		}
 		return counter;
+	}
+
+	@Override
+	public void computePriority(String opponentName) {
+		int enemyArmies = 0;
+		Region neighbor;
+		for (int neighborId : getNeighbors())
+		{
+			neighbor=BotState.getInstance().getVisibleMap().getRegion(neighborId);
+			if (neighbor.ownedByPlayer(opponentName))
+				enemyArmies += neighbor.getArmies() - 1;
+		System.err.println("det: enemy: " + enemyArmies + " mine: " + getArmies());
+		}
+		this.setPriority(enemyArmies-getArmies());
 	}
 
 }
