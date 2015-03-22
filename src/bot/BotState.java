@@ -368,6 +368,8 @@ public class BotState {
 						ArrayList<Integer> neighbors = reg.getNeighbors();
 						for (int j = 0 ; j < neighbors.size(); j++) {
 							Region neighbor = visibleMap.getRegion(neighbors.get(j).intValue());
+							if (neighbor == null)
+								continue;
 							if (neighbor.ownedByPlayer(myName))
 								if (!areAllNeighboursAllies(myName, neighbor)) {
 									if (!myEdgeRegions.contains(neighbor)) {

@@ -182,7 +182,7 @@ public class Region extends Territory {
 			neighbor=BotState.getInstance().getVisibleMap().getRegion(neighborId);
 			if (neighbor.ownedByPlayer(opponentName))
 				enemyArmies += neighbor.getArmies() - 1;
-		System.err.println("det: enemy: " + enemyArmies + " mine: " + getArmies());
+		//System.err.println("det: enemy: " + enemyArmies + " mine: " + getArmies());
 		}
 		this.setPriority(enemyArmies-getArmies());
 	}

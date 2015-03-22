@@ -49,8 +49,9 @@ public class BotStarter implements Bot {
 		SuperRegion startingSuperRegion = startingRegion.getSuperRegion();
 
 		if (!superRegionsToCapture.contains(startingSuperRegion)) {
-			System.err.println("superReg: " + startingSuperRegion.getId());
+			System.err.println("superReg de inceput: " + startingSuperRegion.getId());
 			superRegionsToCapture.add(startingSuperRegion);
+			startingSuperRegion.computePriority(state.getOpponentPlayerName());
 		}
 		return startingRegion;
 	}
@@ -104,7 +105,7 @@ public class BotStarter implements Bot {
 			// punem pe ea tot ce avem ca in 2-3 runde sa fie in siguranta
 			if (inDanger != null) {
 				placeArmiesMoves.add(new PlaceArmiesMove(myName, inDanger, armiesLeft));
-				armiesLeft = 0;
+				return placeArmiesMoves;
 			}
 		}
 
@@ -141,7 +142,10 @@ public class BotStarter implements Bot {
 				}
 			}
 		}
-
+		System.err.println("before sort");
+		for (SuperRegion superRegion : superRegionsToCapture)
+			System.err.println("superReg : "  + superRegion.getId() +
+					" prio :" + superRegion.getPriority() + "uncap: " + superRegion.regionsNotConquered());
 		// Sort the targets by priority (biggest priority first)
 		// and by size if priorities are equal (smallest SuperRegions first)
 		Collections.sort(superRegionsToCapture);
@@ -155,6 +159,11 @@ public class BotStarter implements Bot {
 //		for (Pair<SuperRegion> pair : superRegionsToCapture)
 //			System.err.println("sup: " + pair.getRegion().getId() + "  prior: "
 //					+ pair.getPriority());
+		System.err.println("After sort:");
+		for (SuperRegion superRegion : superRegionsToCapture)
+			System.err.println("superReg : "  + superRegion.getId() +
+					" prio :" + superRegion.getPriority() + "uncap: " + superRegion.regionsNotConquered());
+		
 		
 		Region notEnough=null;
 		for (SuperRegion superRegion : superRegionsToCapture) {
@@ -168,11 +177,11 @@ public class BotStarter implements Bot {
 				Region neighbor;
 				for (Integer neighborId : region.getNeighbors()) {
 					neighbor = visibleMap.getRegion(neighborId);
-					System.err.println("neigh: " + neighbor.getId() + "own: "+ neighbor.getPlayerName());
-					System.err.println("contains? "	+ superRegion.getSubRegions().contains(neighbor));// just...why?
+					//System.err.println("neigh: " + neighbor.getId() + "own: "+ neighbor.getPlayerName());
+					//System.err.println("contains? "	+ superRegion.getSubRegions().contains(neighbor));// just...why?
 
-					System.err.println("contains2222? "+ (neighbor.getSuperRegion().getId() == superRegion.getId()));
-					System.err.println("owned?: "+ neighbor.ownedByPlayer("neutral"));
+					//System.err.println("contains2222? "+ (neighbor.getSuperRegion().getId() == superRegion.getId()));
+					//System.err.println("owned?: "+ neighbor.ownedByPlayer("neutral"));
 					
 					if (neighbor.getSuperRegion().getId() == superRegion.getId() && !neighbor.ownedByPlayer(myName)) {
 						
@@ -194,7 +203,7 @@ public class BotStarter implements Bot {
 		if(notEnough!=null)
 		{
 			placeArmiesMoves.add(new PlaceArmiesMove(myName, notEnough,armiesLeft));
-			armiesLeft =0;
+			return placeArmiesMoves;
 		}
 
 		//
