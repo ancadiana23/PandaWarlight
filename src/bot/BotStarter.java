@@ -85,7 +85,7 @@ public class BotStarter implements Bot {
 
 		LinkedList<Pair<Region>> priorityRegions = state.getRegionsPriority();
 		Collections.sort(priorityRegions);
-
+		LinkedList<Pair<Region>>  regionsForRemainingArmies = new LinkedList<Pair<Region>>();
 		if (visibleEnemies) {
 			System.err.println("Visible enemies!");
 			// apply strategy for vis enemies
@@ -104,7 +104,8 @@ public class BotStarter implements Bot {
 							neededArmies));
 					armiesLeft -= neededArmies;
 					System.err.println("ArmiesLeftaftermove" + armiesLeft);
-				}
+				} else if (neededArmies > armiesLeft)
+					regionsForRemainingArmies.add(pair);
 				if (armiesLeft <= 0)
 					return placeArmiesMoves;
 			}
@@ -162,8 +163,10 @@ public class BotStarter implements Bot {
 		for (Pair<SuperRegion> pair : superRegionsToCapture) {
 			SuperRegion superRegion = pair.getRegion();
 			System.err.println("superreg to deploy: " + superRegion.getId());
+			
 			for (Region reg : superRegion.getSubRegions())
 				System.err.println("subreg: " + reg.getId());
+			
 			for (Region region : myEdgeRegions) {
 				System.err.println("region : " + region.getId());
 				Region neighbor;
@@ -180,17 +183,21 @@ public class BotStarter implements Bot {
 									.getId()));
 					System.err.println("owned?: "
 							+ neighbor.ownedByPlayer("neutral"));
+					
 					if (neighbor.getSuperRegion().getId() == superRegion
 							.getId() && !neighbor.ownedByPlayer(myName)) {
+						
 						int neededArmies = neighbor.armiesNeededToCapture();
 						System.err.println("extend Armies left: " + armiesLeft
 								+ " arm Need: " + neededArmies);
+						
 						if (neededArmies > 0) {
 							if (armiesLeft >= neededArmies) {
 								placeArmiesMoves.add(new PlaceArmiesMove(
 										myName, region, neededArmies));
 								armiesLeft -= neededArmies;
-							} else {
+							} 
+							/*else {
 								//****************************************************************************
 								//in loc sa punem random punem cat mai avem unde ne trebuie msi mult
 								placeArmiesMoves.add(new PlaceArmiesMove(
@@ -198,11 +205,15 @@ public class BotStarter implements Bot {
 								armiesLeft = 0;
 								break;
 								//*****************************************************************************
-							}
+							}*/
 						}
 					}
 				}
 			}
+		}
+		
+		if (armiesLeft > 0) {
+			
 		}
 		//
 		//
