@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 
+import map.Map;
 import map.Region;
 import map.SuperRegion;
 import move.AttackTransferMove;
@@ -64,9 +65,9 @@ public class BotStarter implements Bot {
 
 		ArrayList<PlaceArmiesMove> placeArmiesMoves = new ArrayList<PlaceArmiesMove>();
 		String myName = state.getMyPlayerName();
-		int armies = 2;
 		int armiesLeft = state.getStartingArmies();
-		LinkedList<Region> visibleRegions = state.getVisibleMap().getRegions();
+		//LinkedList<Region> visibleRegions = state.getVisibleMap().getRegions();
+		 Map visibleMap = state.getVisibleMap();
 		// Start1
 		state.detMyEdgeRegions();
 		LinkedList<Region> myEdgeRegions = state.getMyEdgeRegions();
@@ -79,9 +80,8 @@ public class BotStarter implements Bot {
 			}
 
 		//Collections.sort(myEdgeRegions);
-		BotState.getInstance().sortRegions(myEdgeRegions);
-
-		LinkedList<Region>  regionsForRemainingArmies = new LinkedList<Region>();
+		state.sortRegions(myEdgeRegions);
+		
 		if (visibleEnemies) {
 			System.err.println("Visible enemies!");
 			Region inDanger = null;
@@ -94,7 +94,8 @@ public class BotStarter implements Bot {
 					armiesLeft -= neededArmies;
 					System.err.println("ArmiesLeftaftermove" + armiesLeft);
 				} else if (neededArmies > armiesLeft)
-					regionsForRemainingArmies.add(region);
+					if (inDanger == null)
+						inDanger = region;
 				if (armiesLeft <= 0)
 					return placeArmiesMoves;
 			}
@@ -128,11 +129,11 @@ public class BotStarter implements Bot {
 			for (Region reg : myEdgeRegions) {
 				Region neighbor;
 				for (int neighborId : reg.getNeighbors()) {
-					neighbor = BotState.getInstance().getVisibleMap().getRegion(neighborId);
+					neighbor = visibleMap.getRegion(neighborId);
 					SuperRegion superRegion = neighbor.getSuperRegion();
 					if (!superRegion.ownedByPlayer().equals(myName)) {
 						if (!superRegionsToCapture.contains(superRegion))
-							superRegion.computePriority(BotState.getInstance().getOpponentPlayerName());
+							superRegion.computePriority(state.getOpponentPlayerName());
 							superRegionsToCapture.add(superRegion);
 						
 					}
@@ -165,7 +166,7 @@ public class BotStarter implements Bot {
 				System.err.println("region : " + region.getId());
 				Region neighbor;
 				for (Integer neighborId : region.getNeighbors()) {
-					neighbor = BotState.getInstance().getVisibleMap().getRegion(neighborId);
+					neighbor = visibleMap.getRegion(neighborId);
 					System.err.println("neigh: " + neighbor.getId() + "own: "+ neighbor.getPlayerName());
 					System.err.println("contains? "	+ superRegion.getSubRegions().contains(neighbor));// just...why?
 
@@ -233,7 +234,7 @@ public class BotStarter implements Bot {
 				Region neighbor;
 				ArrayList<Region> possibleToRegions = new ArrayList<Region>();
 				for (int neighborId : fromRegion.getNeighbors()) {
-					neighbor = BotState.getInstance().getVisibleMap().getRegion(neighborId);
+					neighbor = state.getVisibleMap().getRegion(neighborId);
 					// **********************************************************************
 					// pierdeam destule runde mutandu-ne pur si simplu intre noi
 					// daca ne mutam armatele trebuie sa o facem eficient altfel
