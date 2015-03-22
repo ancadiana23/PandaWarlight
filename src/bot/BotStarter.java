@@ -80,8 +80,8 @@ public class BotStarter implements Bot {
 
 		//Collections.sort(myEdgeRegions);
 		BotState.getInstance().sortRegions(myEdgeRegions);
-		
 
+		LinkedList<Region>  regionsForRemainingArmies = new LinkedList<Region>();
 		if (visibleEnemies) {
 			System.err.println("Visible enemies!");
 			Region inDanger = null;
@@ -92,10 +92,9 @@ public class BotStarter implements Bot {
 					// System.err.println("Needed armies: " + neededArmies);
 					placeArmiesMoves.add(new PlaceArmiesMove(myName, region, neededArmies));
 					armiesLeft -= neededArmies;
-					// System.err.println("ArmiesLeftaftermove" + armiesLeft);
-				} else if (neededArmies > armiesLeft && inDanger == null)
-					inDanger = region;
-
+					System.err.println("ArmiesLeftaftermove" + armiesLeft);
+				} else if (neededArmies > armiesLeft)
+					regionsForRemainingArmies.add(region);
 				if (armiesLeft <= 0)
 					return placeArmiesMoves;
 			}
@@ -158,6 +157,7 @@ public class BotStarter implements Bot {
 		Region notEnough=null;
 		for (SuperRegion superRegion : superRegionsToCapture) {
 			System.err.println("superreg to deploy: " + superRegion.getId());
+			
 			for (Region reg : superRegion.getSubRegions())
 				System.err.println("subreg: " + reg.getId());
 			
@@ -166,23 +166,24 @@ public class BotStarter implements Bot {
 				Region neighbor;
 				for (Integer neighborId : region.getNeighbors()) {
 					neighbor = BotState.getInstance().getVisibleMap().getRegion(neighborId);
+					System.err.println("neigh: " + neighbor.getId() + "own: "+ neighbor.getPlayerName());
+					System.err.println("contains? "	+ superRegion.getSubRegions().contains(neighbor));// just...why?
+
+					System.err.println("contains2222? "+ (neighbor.getSuperRegion().getId() == superRegion.getId()));
+					System.err.println("owned?: "+ neighbor.ownedByPlayer("neutral"));
 					
-//					System.err.println("neigh: " + neighbor.getId() + "own: "+ neighbor.getPlayerName());
-//					System.err.println("contains? "+ superRegion.getSubRegions().contains(neighbor));// just...why?
-//					System.err.println("contains2222? "+ (neighbor.getSuperRegion().getId() == superRegion.getId()));
-//					System.err.println("owned?: " + neighbor.ownedByPlayer("neutral"));
-					
-					if (neighbor.getSuperRegion().getId() == superRegion.getId()
-							&& !neighbor.ownedByPlayer(myName)) {
+					if (neighbor.getSuperRegion().getId() == superRegion.getId() && !neighbor.ownedByPlayer(myName)) {
+						
 						int neededArmies = neighbor.armiesNeededToCapture();
-						System.err.println("extend Armies left: " + armiesLeft + " arm Need: "+ neededArmies);
+						System.err.println("extend Armies left: " + armiesLeft+ " arm Need: " + neededArmies);
+						
 						if (neededArmies > 0) {
 							if (armiesLeft >= neededArmies) {
 								placeArmiesMoves.add(new PlaceArmiesMove(myName, region,neededArmies));
 								armiesLeft -= neededArmies;
 							} else if(notEnough==null){
 								notEnough=region;
-							}
+							} 
 						}
 					}
 				}
@@ -193,9 +194,7 @@ public class BotStarter implements Bot {
 			placeArmiesMoves.add(new PlaceArmiesMove(myName, notEnough,armiesLeft));
 			armiesLeft =0;
 		}
-		//***********************************************************
-		//DACA MAI AVEM CEVA TREBUIE PLASAT TOTUL PE MARGINE
-		//**********************************************************
+
 		//
 		// End1
 		// System.err.println("Random placement:..armies: " + armiesLeft);
