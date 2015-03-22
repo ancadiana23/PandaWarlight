@@ -55,6 +55,46 @@ public class BotStarter implements Bot {
 		}
 		return startingRegion;
 	}
+	
+	 private ArrayList<AttackTransferMove> getIdleArmiesTransferMoves(BotState state, long TimeOut)
+	 {
+	  ArrayList<AttackTransferMove> res = new ArrayList<AttackTransferMove>();
+	  LinkedList<Region> regions = state.getMyInnerTerritory();
+	  
+	  for(Region reg: regions)
+	  {
+	   ArrayList<Region> edgeNeighbors = new ArrayList<Region>();
+	   ArrayList<Region> neighbors = reg.getNeighbors();
+	   
+	   for(Region neighbor: neighbors)
+	    if(state.getMyEdgeRegions().contains(neighbor))
+	     edgeNeighbors.add(neighbor);
+	   
+	   if(!edgeNeighbors.isEmpty())
+	   {
+	    Collections.sort(edgeNeighbors);
+	    res.add(new AttackTransferMove(state.getMyPlayerName(), reg, edgeNeighbors.get(o), reg.getArmies()-1));
+	   }
+	   else
+	   {
+	    ArrayList<Region> temp = new ArrayList<Region>();
+	    while(!edgeNeighbors.isEmpty())
+	    {
+	     ArrayList<Region> tempNeighbors  = edgeNeighbors.get(0).getNeighbors();
+	     for(Region next: tempNeighbors)
+	      if(state.getMyEdgeRegions().contains(next))
+	       temp.add(next);
+	      else
+	       edgeNeighbors.add(next); 
+	    }
+	    
+	    Collections.sort(edgeNeighbors);
+	    res.add(new AttackTransferMove(state.getMyPlayerName(), reg, edgeNeighbors.get(o), reg.getArmies()-1));
+	   }
+	  }
+	  
+	  return res;
+	 }
 
 	@Override
 	/**
