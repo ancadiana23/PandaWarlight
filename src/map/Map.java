@@ -77,8 +77,8 @@ public class Map {
 		for(Region r : regions) //add neighbors to copied regions
 		{
 			Region newRegion = newMap.getRegion(r.getId());
-			for(int neighbor : r.getNeighbors())
-				newRegion.addNeighbor(newMap.getRegion(neighbor));
+			for(Region neighbor : r.getNeighbors())
+				newRegion.addNeighbor(newMap.getRegion(neighbor.getId()));
 		}
 		return newMap;
 	}
@@ -103,10 +103,9 @@ public class Map {
 	 */
 	public Region getRegion(int id)
 	{
-		for(Region region : regions) {
+		for(Region region : regions)
 			if(region.getId() == id)
 				return region;
-		}
 		return null;
 	}
 	
