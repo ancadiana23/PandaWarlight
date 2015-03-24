@@ -80,12 +80,13 @@ public class SuperRegion extends Territory {
 	 */
 	@Override
 	public int compareTo(Territory territory) {
-		if (getPriority() == territory.getPriority()) {
+		if (priority == territory.priority) {
+
 			Integer thisReg = regionsNotConquered();
 			Integer otherReg = (Integer) ((SuperRegion) territory).regionsNotConquered();
 			return thisReg.compareTo(otherReg);
 		}
-		return -this.getPriority().compareTo(territory.getPriority());
+		return -this.priority.compareTo(territory.priority);
 	}
 
 	/**
@@ -102,8 +103,8 @@ public class SuperRegion extends Territory {
 	 */
 	public int regionsNotConquered() {
 		int count = 0;
-		//for every region in this SuperRegion
-		//if the Region is not owned by me increment a counter
+		// for every region in this SuperRegion
+		// if the Region is not owned by me increment a counter
 		for (Region region : subRegions) {
 			if (!region.ownedByPlayer(BotState.getMyPlayerNameStatic()))
 				count++;
