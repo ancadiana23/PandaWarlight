@@ -21,7 +21,6 @@ package bot;
  */
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -336,9 +335,9 @@ public class BotStarter implements Bot {
 		}
 
 		String myName = state.getMyPlayerName();
-		int armies = 5;
-		int maxTransfers = 10;
-		int transfers = 0;
+//		int armies = 5;
+//		int maxTransfers = 10;
+//		int transfers = 0;
 		// attackTransferMoves = getIdleArmiesTransferMoves(state, timeOut);
 		LinkedList<Region> edgeRegions = state.getMyEdgeTerritories();
 
@@ -383,9 +382,20 @@ public class BotStarter implements Bot {
 			Collections.reverse(enemiesInOurSuperRegion);
 			Collections.sort(enemiesNotInOurSuperRegion);
 			Collections.reverse(enemiesNotInOurSuperRegion);
+			ArrayList<Region> enemyRegions = new ArrayList<Region>();
 			
-			for (Region enemyRegion : enemiesInOurSuperRegion) {
-				int myArmies = fromRegion.getArmies() - fromRegion.armiesNeededToDefend() - 1;
+			enemyRegions.addAll(enemiesInOurSuperRegion);
+			enemyRegions.addAll(enemiesNotInOurSuperRegion);
+			for (Region enemyRegion : enemyRegions) {
+				int myArmies = fromRegion.getArmies() - fromRegion.armiesNeededToDefend(possibleToRegions) - 1;
+				if (myArmies <= 0)
+					break;
+				int armiesNeededToAttack = enemyRegion.armiesNeededToCapture();
+				if (myArmies >= armiesNeededToAttack) {
+					attackTransferMoves.add(new AttackTransferMove(myName, fromRegion, enemyRegion, armiesNeededToAttack));
+					possibleToRegions.remove(enemyRegion);
+					fromRegion.setArmies(fromRegion.getArmies() - armiesNeededToAttack);
+				}	
 			}
 			
 				// double rand = Math.random();

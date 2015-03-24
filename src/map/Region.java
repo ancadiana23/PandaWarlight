@@ -11,6 +11,7 @@
 package map;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import bot.BotState;
 
@@ -155,7 +156,7 @@ public class Region extends Territory{
 		int enemyArmies = (int) Math.abs(getPriority() + armies);
 		return (int) (Math.round((enemyArmies * 0.6)) - armies + 1);
 	}
-	public int armiesNeededToDefend(LinkedList<Region> neighbors){
+	public int armiesNeededToDefend(List<Region> neighbors){
 		int enemyArmies = 0;
 		String enemy = BotState.getOpponentPlayerNameStatic();
 		for (Region neighbor : neighbors )
