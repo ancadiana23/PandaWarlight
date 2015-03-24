@@ -37,9 +37,6 @@ public class BotStarter implements Bot {
 	 * This method returns one random region from the given pickable regions.
 	 */
 	public Region getStartingRegion(BotState state, Long timeOut) {
-		// double rand = Math.random();
-		// int r = (int) (rand*state.getPickableStartingRegions().size());
-
 		ArrayList<Region> pickableStartingRegions = state
 				.getPickableStartingRegions();
 
@@ -49,11 +46,20 @@ public class BotStarter implements Bot {
 
 		for (int i = 1; i < pickableStartingRegions.size(); i++) {
 			Region region = pickableStartingRegions.get(i);
-			region.getSuperRegion().computePriority();
+			SuperRegion superRegion = region.getSuperRegion();
+			superRegion.computePriority();
+			Float maxPriority = max.getSuperRegion().getPriority();
+			Float priority = superRegion.getPriority();
 
-			Float priority = region.getSuperRegion().getPriority();
-			if (priority > max.getSuperRegion().getPriority())
+			if (priority > maxPriority)
 				max = region;
+			else if (priority.equals(maxPriority)) {
+				int maxNoRegions = max.getSuperRegion().getSubRegions().size();
+				int noRegions = superRegion.getSubRegions().size();
+				
+				if (maxNoRegions > noRegions) 
+					max = region;
+			}
 		}
 
 		// int regionId = state.getPickableStartingRegions().get(r).getId();
