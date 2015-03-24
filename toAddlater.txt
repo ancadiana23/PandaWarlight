@@ -1,0 +1,61 @@
+/*} else {
+			for (int i = 0; i < myEdgeTerritories.size(); i++) {
+				Region region = myEdgeTerritories.get(i);
+				LinkedList<Region> neighbors = region.getNeighbors();
+				int regId = region.getId();
+				if (!region.ownedByPlayer(myName)) {	
+					for (Region neighbor : neighbors) 
+						if (neighbor.ownedByPlayer(myName) && 
+								!myEdgeTerritories.contains(neighbor)) {
+							myEdgeTerritories.addFirst(neighbor);
+							i++;
+							
+							if (myInnerTerritories.contains(neighbor))
+								myInnerTerritories.remove(neighbor);
+						}
+					myEdgeTerritories.remove(region);
+					i--;
+				} else {
+					if (areAllNeighborsAllies(region)) {
+						myEdgeTerritories.remove(region);
+						i--;
+						myInnerTerritories.add(region);
+					}
+					
+					for (Region neighbor : neighbors) {
+						if (neighbor.ownedByPlayer(myName))
+							if (!areAllNeighborsAllies(neighbor)) {
+								if (!myEdgeTerritories.contains(neighbor)) {
+									myEdgeTerritories.add(neighbor);
+									i++;
+								}
+							} else if (!myInnerTerritories.contains(neighbor))
+								myInnerTerritories.add(neighbor);
+					}
+				}
+			}
+		}*/
+
+
+
+
+
+public int getUnknownNeighbors() {
+		int counter = 0;
+		for (Region neighbor : neighbors) {
+			if (neighbor.ownedByPlayer("unknown")  && neighbor.armies == 0)
+				counter++;
+		}
+		return counter;
+	}
+
+
+public int getNeutralNeighbors(String enemy, String me) {
+		int counter = 0;
+		for (Region neighbor : neighbors) {
+			if (!neighbor.ownedByPlayer(enemy) && !neighbor.ownedByPlayer(me)
+					&& neighbor.armies != 0)
+				counter++;
+		}
+		return counter;
+	}
