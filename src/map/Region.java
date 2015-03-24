@@ -152,8 +152,17 @@ public class Region extends Territory{
 		return (int) Math.round((0.6 * armies));
 	}
 	public int armiesNeededToDefend(){
-		int enemyArmies = (int) Math.abs(getPriority() + armies - 1);
+		int enemyArmies = (int) Math.abs(getPriority() + armies);
 		return (int) (Math.round((enemyArmies * 0.6)) - armies + 1);
+	}
+	public int armiesNeededToDefend(LinkedList<Region> neighbors){
+		int enemyArmies = 0;
+		String enemy = BotState.getOpponentPlayerNameStatic();
+		for (Region neighbor : neighbors )
+			if (neighbor.ownedByPlayer(enemy))
+				enemyArmies += neighbor.getArmies() - 1;
+	
+		return (int) (Math.round(enemyArmies * 0.6));
 	}
 
 	public int getUnknownNeighbors() {
