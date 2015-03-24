@@ -39,9 +39,27 @@ public class BotStarter implements Bot
 	 */
 	public Region getStartingRegion(BotState state, Long timeOut)
 	{
-		double rand = Math.random();
-		int r = (int) (rand*state.getPickableStartingRegions().size());
-		int regionId = state.getPickableStartingRegions().get(r).getId();
+		//double rand = Math.random();
+		//int r = (int) (rand*state.getPickableStartingRegions().size());
+		
+		ArrayList<Region> pickableStartingRegions =  state.getPickableStartingRegions();
+		
+		//Pick the region from the superRegion with the highest priority
+		Region max = pickableStartingRegions.get(0);
+		max.getSuperRegion().computePriority();
+		
+		for (int i = 1; i < pickableStartingRegions.size(); i++) {
+			Region region = pickableStartingRegions.get(i);
+			region.getSuperRegion().computePriority();
+			
+			Float priority = region.getSuperRegion().getPriority();
+			if (priority > max.getSuperRegion().getPriority())
+				max = region;
+		}
+		
+		//int regionId = state.getPickableStartingRegions().get(r).getId();
+		int regionId = max.getId();
+		
 		Region startingRegion = state.getFullMap().getRegion(regionId);
 		SuperRegion superRegion = startingRegion.getSuperRegion();
 		LinkedList<SuperRegion> superRegToConquer = state.getSuperRegToConquer();
@@ -63,6 +81,7 @@ public class BotStarter implements Bot
 				//we can defend
 				if (neededArmies <= armiesLeft) {
 					placeArmiesMoves.add(new PlaceArmiesMove(name, region, neededArmies));
+					System.err.println("Pentru a apara regiunea " + region.getId());
 					armiesLeft -= neededArmies;
 				} else {
 					//fortify this region later
@@ -99,6 +118,7 @@ public class BotStarter implements Bot
 						if (neededArmies > 0)
 							if (armiesLeft >= neededArmies) {
 								placeArmiesMoves.add(new PlaceArmiesMove(name, region, neededArmies));
+								System.err.println(region.getId() + " pentru a ataca regiunea " + neighbor.getId());
 								armiesLeft -= neededArmies;
 							} else {
 								if(notEnough == null)
@@ -115,10 +135,10 @@ public class BotStarter implements Bot
 						}
 					}
 			}
-		}
-		
+		}	
 		return armiesLeft;
 	}
+	
 	@Override
 	/**
 	 * This method is called for at first part of each round. This example puts two armies on random regions
@@ -132,7 +152,7 @@ public class BotStarter implements Bot
 		String myName = state.getMyPlayerName();
 		int armies = 2;
 		int armiesLeft = state.getStartingArmies();
-		LinkedList<Region> visibleRegions = state.getVisibleMap().getRegions();
+		//LinkedList<Region> visibleRegions = state.getVisibleMap().getRegions();
 		
 		//Determine the edges
 		state.detMyEdgeTerritories();
@@ -145,13 +165,7 @@ public class BotStarter implements Bot
 				visibleEnemies = true;
 				break;
 			}
-		
-		//Debug start
-		System.err.println("Before sort:");
-		for (Region region : edgeTerritories)
-			System.err.print(region.getPriority() + " ");
-		System.err.println();
-		
+	
 		state.sortTerritories(edgeTerritories);
 		
 		System.err.println("After sort:");
@@ -159,7 +173,6 @@ public class BotStarter implements Bot
 			System.err.print(region.getPriority() + " ");
 		System.err.println();
 		
-		//Debug end
 		
 		if (visibleEnemies) {
 			System.err.println("Enemies!");
@@ -168,68 +181,67 @@ public class BotStarter implements Bot
 			if (armiesLeft <= 0)
 				return placeArmiesMoves;
 		}
-		else {
-			LinkedList<SuperRegion> superRegionsToConquer = state.getSuperRegToConquer();
+		
+		LinkedList<SuperRegion> superRegionsToConquer = state.getSuperRegToConquer();
 			
-			//See if some of the targets are captured and remove them
-			for (int i = 0; i < superRegionsToConquer.size(); i++) {
+		//See if some of the targets are captured and remove them
+		for (int i = 0; i < superRegionsToConquer.size(); i++) {
 
-				if (superRegionsToConquer.get(i).ownedByPlayer().equals(myName)) {
-					superRegionsToConquer.remove(i);
-					i--;
-				}
+			if (superRegionsToConquer.get(i).ownedByPlayer().equals(myName)) {
+				superRegionsToConquer.remove(i);
+				i--;
 			}
-			
-			// If we're done capturing all the planned SuperRegions, add new targets
-			if (superRegionsToConquer.isEmpty()) {
-				for (Region region : edgeTerritories) {
-					LinkedList<Region> neighbors = region.getNeighbors();
+		}
+		
+		// If we're done capturing all the planned SuperRegions, add new targets
+		if (superRegionsToConquer.isEmpty()) {
+			for (Region region : edgeTerritories) {
+				LinkedList<Region> neighbors = region.getNeighbors();
+				
+				for (Region neighbor : neighbors) {
+					SuperRegion superRegion = neighbor.getSuperRegion();
 					
-					for (Region neighbor : neighbors) {
-						SuperRegion superRegion = neighbor.getSuperRegion();
-						
-						if (!superRegion.ownedByPlayer().equals(myName)) {
-							if (!superRegionsToConquer.contains(superRegion)) {
-								superRegion.computePriority();
-								superRegionsToConquer.add(superRegion);
-							}
+					if (!superRegion.ownedByPlayer().equals(myName)) {
+						if (!superRegionsToConquer.contains(superRegion)) {
+							superRegion.computePriority();
+							superRegionsToConquer.add(superRegion);
 						}
 					}
 				}
 			}
-			//Debug 2
-			System.err.println("Super before sort:");
-			for (SuperRegion superRegion : superRegionsToConquer)
-				System.err.print("prior: " + superRegion.getPriority() + "notC: " 
-			+ superRegion.regionsNotConquered());
-			System.err.println();
-			
-			state.sortTerritories(superRegionsToConquer);
-			
-			//Debug 2
-			System.err.println("Super after sort:");
-			for (SuperRegion superRegion : superRegionsToConquer)
-				System.err.print("prior: " + superRegion.getPriority() + "notC: " 
-			+ superRegion.regionsNotConquered());
-			System.err.println();
-			
-			//End debug2
-			armiesLeft = deployToExpand(superRegionsToConquer, edgeTerritories, armiesLeft, placeArmiesMoves, myName);
-			if (armiesLeft <= 0)
-				return placeArmiesMoves;
-			
 		}
+		//Debug 2
+		System.err.println("Super before sort:");
+		for (SuperRegion superRegion : superRegionsToConquer)
+			System.err.print("prior: " + superRegion.getPriority() + "notC: " 
+		+ superRegion.regionsNotConquered());
+		System.err.println();
 		
-		//Their random 
-		System.err.println("Raaandom");
+		state.sortTerritories(superRegionsToConquer);
+		
+		//Debug 2
+		System.err.println("Super after sort:");
+		for (SuperRegion superRegion : superRegionsToConquer)
+			System.err.print("prior: " + superRegion.getPriority() + "notC: " 
+		+ superRegion.regionsNotConquered());
+		System.err.println();
+		System.err.println("Ajunge la expand");
+		//End debug2
+		armiesLeft = deployToExpand(superRegionsToConquer, edgeTerritories, armiesLeft, placeArmiesMoves, myName);
+		if (armiesLeft <= 0)
+			return placeArmiesMoves;
+			
+		
+		//Their random , but chooses from our edges
 		while(armiesLeft > 0)
 		{
 			double rand = Math.random();
-			int r = (int) (rand*visibleRegions.size());
-			Region region = visibleRegions.get(r);
+			int r = (int) (rand * edgeTerritories.size());
+			Region region = edgeTerritories.get(r);
 			
 			if(region.ownedByPlayer(myName))
 			{
+				System.err.println(region.getId() + " pentru ca random");
 				placeArmiesMoves.add(new PlaceArmiesMove(myName, region, armies));
 				armiesLeft -= armies;
 			}
