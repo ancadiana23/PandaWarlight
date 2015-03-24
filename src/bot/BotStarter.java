@@ -21,6 +21,7 @@ package bot;
  */
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -378,6 +379,14 @@ public class BotStarter implements Bot {
 
 			}
 			
+			Collections.sort(enemiesInOurSuperRegion);
+			Collections.reverse(enemiesInOurSuperRegion);
+			Collections.sort(enemiesNotInOurSuperRegion);
+			Collections.reverse(enemiesNotInOurSuperRegion);
+			
+			for (Region enemyRegion : enemiesInOurSuperRegion) {
+				int myArmies = fromRegion.getArmies() - fromRegion.armiesNeededToDefend() - 1;
+			}
 			
 				// double rand = Math.random();
 				// int r = (int) (rand*possibleToRegions.size());

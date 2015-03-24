@@ -145,11 +145,11 @@ public class Region extends Territory{
 	}
 	
 	public int armiesNeededToCapture() {
-		return (int) Math.round((1.7 * armies));
+		return (int) Math.round(1.7 * armies);
 	}
 
 	public int armiesItCanKill() {
-		return (int) Math.round((0.6 * armies));
+		return (int) Math.round(0.6 * armies);
 	}
 	public int armiesNeededToDefend(){
 		int enemyArmies = (int) Math.abs(getPriority() + armies);
