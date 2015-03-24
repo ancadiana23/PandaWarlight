@@ -378,9 +378,11 @@ public class BotStarter implements Bot {
 				int myArmies = fromRegion.getArmies()
 						- fromRegion.armiesNeededToDefend(possibleToRegions)
 						- 1;
+				
 				if (myArmies <= 0)
 					break;
 				int armiesNeededToAttack = enemyRegion.armiesNeededToCapture();
+				
 				if (myArmies >= armiesNeededToAttack) {
 					attackTransferMoves.add(new AttackTransferMove(myName,
 							fromRegion, enemyRegion, armiesNeededToAttack));
