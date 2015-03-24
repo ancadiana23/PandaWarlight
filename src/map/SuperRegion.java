@@ -9,84 +9,101 @@
  */
 
 package map;
+
 import java.util.LinkedList;
 
 import bot.BotState;
 
-public class SuperRegion extends Territory{
-	
+public class SuperRegion extends Territory {
+
 	private int armiesReward;
 	private LinkedList<Region> subRegions;
-	
-	public SuperRegion(int id, int armiesReward)
-	{
+
+	public SuperRegion(int id, int armiesReward) {
 		this.id = id;
 		this.armiesReward = armiesReward;
 		subRegions = new LinkedList<Region>();
 	}
-	
-	public void addSubRegion(Region subRegion)
-	{
-		if(!subRegions.contains(subRegion))
+
+	public void addSubRegion(Region subRegion) {
+		if (!subRegions.contains(subRegion))
 			subRegions.add(subRegion);
 	}
-	
+
 	/**
-	 * @return A string with the name of the player that fully owns this SuperRegion
+	 * @return A string with the name of the player that fully owns this
+	 *         SuperRegion
 	 */
-	public String ownedByPlayer()
-	{
+	public String ownedByPlayer() {
 		String playerName = subRegions.getFirst().getPlayerName();
-		for(Region region : subRegions)
-		{
+		for (Region region : subRegions) {
 			if (!playerName.equals(region.getPlayerName()))
 				return null;
 		}
 		return playerName;
 	}
-	
+
 	/**
 	 * @return The id of this SuperRegion
 	 */
 	public int getId() {
 		return id;
 	}
-	
+
 	/**
-	 * @return The number of armies a Player is rewarded when he fully owns this SuperRegion
+	 * @return The number of armies a Player is rewarded when he fully owns this
+	 *         SuperRegion
 	 */
 	public int getArmiesReward() {
 		return armiesReward;
 	}
-	
+
 	/**
 	 * @return A list with the Regions that are part of this SuperRegion
 	 */
 	public LinkedList<Region> getSubRegions() {
 		return subRegions;
 	}
-	
+
+	/**
+	 * 
+	 * @return The average value of the SuperRegion
+	 */
 	public float getValue() {
 		return (float) armiesReward / subRegions.size();
 	}
 
+	/**
+	 * SuperRegions are compared with respect to their priority; if the
+	 * priorities are equal then they are compared with respect to the number of
+	 * foreign Regions they contain
+	 */
 	@Override
 	public int compareTo(Territory territory) {
-		if (getPriority()==territory.getPriority()) {
+		if (getPriority() == territory.getPriority()) {
 			Integer thisReg = regionsNotConquered();
 			Integer otherReg = (Integer) ((SuperRegion) territory).regionsNotConquered();
 			return thisReg.compareTo(otherReg);
 		}
 		return -this.getPriority().compareTo(territory.getPriority());
 	}
-	
+
+	/**
+	 * Sets the priority as the average value of the SuperRegion
+	 */
 	@Override
 	public void computePriority() {
 		setPriority(getValue());
 	}
-	
+
+	/**
+	 * 
+	 * @return The number of foreign regions contained by the SuperRegion
+	 */
 	public int regionsNotConquered() {
 		int count = 0;
+		//for every region in this SuperRegion
+		//if the Region is not owned by me increment a counter
 		for (Region region : subRegions) {
 			if (!region.ownedByPlayer(BotState.getMyPlayerNameStatic()))
 				count++;

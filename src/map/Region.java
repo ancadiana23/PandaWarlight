@@ -21,6 +21,7 @@ public class Region extends Territory{
 	private LinkedList<Region> neighbors;
 	private SuperRegion superRegion;
 	private int armies;
+	//armies that are kept especially to protect from neighboring enemies
 	private int armiesForDefense;
 	private String playerName;
 	
@@ -135,6 +136,10 @@ public class Region extends Territory{
 		this.armiesForDefense = armiesForDefense;
 	}
 	
+	/**
+	 * Sets the priority for the current Region 
+	 * as the difference between the number of armies that can attack it and its armies
+	 */
 	@Override
 	public void computePriority() {
 		int enemyArmies = 0;
@@ -144,18 +149,38 @@ public class Region extends Territory{
 				enemyArmies += neighbor.getArmies() - 1;
 		setPriority(enemyArmies - armies);
 	}
-	
+	/**
+	 * 
+	 * @return The armies that are needed in order to capture this region
+	 */
 	public int armiesNeededToCapture() {
 		return (int) Math.round(1.7 * armies);
 	}
-
+	
+	/**
+	 * 
+	 * @return The number of armies that this Region can kill at the moment
+	 */
 	public int armiesItCanKill() {
 		return (int) Math.round(0.6 * armies);
 	}
+	
+	/**
+	 * 
+	 * @return The number of armies the Bot should add to this Region to defend it against all its neighboring enemies
+	 */
 	public int armiesNeededToDefend(){
+		//the priority is the number of armies that can attack this Region minus its own armies
+		//getPriority() + armies = number of armies that can attack this Region
 		int enemyArmies = (int) Math.abs(getPriority() + armies);
 		return (int) (Math.round((enemyArmies * 0.6)) - armies + 1);
 	}
+	
+	/**
+	 * 
+	 * @param List of Regions to defend itself against
+	 * @return The number of armies this Region needs in oder to defend itself against the enemies contained in the list
+	 */
 	public int armiesNeededToDefend(List<Region> neighbors){
 		int enemyArmies = 0;
 		String enemy = BotState.getOpponentPlayerNameStatic();
@@ -174,7 +199,11 @@ public class Region extends Territory{
 		}
 		return counter;
 	}
-
+	/**
+	 * 
+	 * @param Name of the enemy
+	 * @return Number of neighbors owned by the enemy
+	 */
 	public int getEnemyNeighbors(String enemy) {
 		int counter = 0;
 		
@@ -182,7 +211,6 @@ public class Region extends Territory{
 			if (neighbor.ownedByPlayer(enemy))
 				counter++;
 		}
-		// System.err.println("No enemies found "+counter);
 		return counter;
 	}
 
@@ -196,6 +224,9 @@ public class Region extends Territory{
 		return counter;
 	}
 
+	/**
+	 * Regions are to be sorted in descending order of the armies the Bot needs to add to them
+	 */
 	@Override
 	public int compareTo(Territory territory) {
 		return -this.getPriority().compareTo(territory.getPriority());
