@@ -153,7 +153,7 @@ public class Region extends Territory{
 		return (int) Math.round(0.6 * armies);
 	}
 	public int armiesNeededToDefend(){
-		int enemyArmies = (int) Math.abs(getPriority() + armies);
+		int enemyArmies = (int) Math.abs(priority + armies);
 		return (int) (Math.round((enemyArmies * 0.6)) - armies + 1);
 	}
 	public int armiesNeededToDefend(List<Region> neighbors){
@@ -198,7 +198,7 @@ public class Region extends Territory{
 
 	@Override
 	public int compareTo(Territory territory) {
-		return -this.getPriority().compareTo(territory.getPriority());
+		return -this.priority.compareTo(territory.priority);
 	}
 	
 }

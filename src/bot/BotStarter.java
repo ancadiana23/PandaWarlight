@@ -56,15 +56,13 @@ public class BotStarter implements Bot {
 			else if (priority.equals(maxPriority)) {
 				int maxNoRegions = max.getSuperRegion().getSubRegions().size();
 				int noRegions = superRegion.getSubRegions().size();
-				
-				if (maxNoRegions > noRegions) 
+
+				if (maxNoRegions > noRegions)
 					max = region;
 			}
 		}
 
-		// int regionId = state.getPickableStartingRegions().get(r).getId();
 		int regionId = max.getId();
-
 		Region startingRegion = state.getFullMap().getRegion(regionId);
 		SuperRegion superRegion = startingRegion.getSuperRegion();
 		LinkedList<SuperRegion> superRegToConquer = state
@@ -90,8 +88,6 @@ public class BotStarter implements Bot {
 							neededArmies));
 					region.setArmies(neededArmies + region.getArmies());
 					region.setArmiesForDefense(neededArmies);
-					System.err.println("Pentru a apara regiunea "
-							+ region.getId());
 					armiesLeft -= neededArmies;
 				} else {
 					// fortify this region later
@@ -135,9 +131,6 @@ public class BotStarter implements Bot {
 						if (region.getArmiesForDefense() > 0)
 							toDeploy += region.getArmiesForDefense();
 
-						System.err.println("Before if, we need : " + toDeploy
-								+ " pe care le pune in regiunea: "
-								+ region.getId());
 						if (toDeploy > 0)
 							if (armiesLeft >= neededArmies) {
 								placeArmiesMoves.add(new PlaceArmiesMove(
@@ -145,9 +138,6 @@ public class BotStarter implements Bot {
 								region.setArmies(toDeploy + region.getArmies());
 								state.addAttackTransferMove(new AttackTransferMove(
 										myName, region, neighbor, neededArmies));
-								System.err.println(region.getId()
-										+ " pentru a ataca regiunea "
-										+ neighbor.getId());
 								armiesLeft -= toDeploy;
 							} else {
 								if (notEnough == null)
@@ -180,13 +170,10 @@ public class BotStarter implements Bot {
 	 */
 	public ArrayList<PlaceArmiesMove> getPlaceArmiesMoves(BotState state,
 			Long timeOut) {
-		System.err.println("Round: " + state.getRoundNumber());
 		ArrayList<PlaceArmiesMove> placeArmiesMoves = new ArrayList<PlaceArmiesMove>();
 		String myName = state.getMyPlayerName();
 		int armies = 2;
 		int armiesLeft = state.getStartingArmies();
-		// LinkedList<Region> visibleRegions =
-		// state.getVisibleMap().getRegions();
 
 		// Determine the edges
 		state.detMyEdgeTerritories();
@@ -202,13 +189,7 @@ public class BotStarter implements Bot {
 
 		state.sortTerritories(edgeTerritories);
 
-		System.err.println("After sort:");
-		for (Region region : edgeTerritories)
-			System.err.print(region.getPriority() + " ");
-		System.err.println();
-
 		if (visibleEnemies) {
-			System.err.println("Enemies!");
 			armiesLeft = defend(edgeTerritories, armiesLeft, placeArmiesMoves,
 					myName);
 
@@ -263,7 +244,6 @@ public class BotStarter implements Bot {
 			Region region = edgeTerritories.get(r);
 
 			if (region.ownedByPlayer(myName)) {
-				System.err.println(region.getId() + " pentru ca random");
 				placeArmiesMoves
 						.add(new PlaceArmiesMove(myName, region, armies));
 				region.setArmies(armies + region.getArmies());
@@ -285,6 +265,9 @@ public class BotStarter implements Bot {
 
 				LinkedList<Region> edgeNeighbors = new LinkedList<Region>();
 				LinkedList<Region> neighbors = innerRegion.getNeighbors();
+				LinkedList<Region> from = new LinkedList<Region>();
+				from.addAll(neighbors);
+				
 
 				for (Region neighbor : neighbors)
 					if (edgeTerritories.contains(neighbor))
@@ -304,19 +287,25 @@ public class BotStarter implements Bot {
 						LinkedList<Region> tempNeighbors = edgeNeighbors.get(
 								curr).getNeighbors();
 						for (Region next : tempNeighbors)
-							if (edgeTerritories.contains(next))
+							if (edgeTerritories.contains(next)) {
 								temp.add(next);
-							else {
-								if (!edgeNeighbors.contains(next))
+							} else {
+								if (!edgeNeighbors.contains(next)) {
+									from.add(from.get(curr));
 									edgeNeighbors.add(next);
+								}
 							}
 						++curr;
 					}
 
-					state.sortTerritories(edgeNeighbors);
-					res.add(new AttackTransferMove(state.getMyPlayerName(),
-							innerRegion, edgeNeighbors.get(0), innerRegion
-									.getArmies() - 1));
+					state.sortTerritories(temp);
+					for (int i = 0; i < edgeNeighbors.size(); ++i)
+						if (edgeNeighbors.get(i) == temp.get(0)) {
+							res.add(new AttackTransferMove(state
+									.getMyPlayerName(), innerRegion, from
+									.get(i), innerRegion.getArmies() - 1));
+							break;
+						}
 				}
 			}
 
@@ -334,24 +323,9 @@ public class BotStarter implements Bot {
 		ArrayList<AttackTransferMove> attackTransferMoves = getIdleArmiesTransferMoves(state);
 		attackTransferMoves.addAll(state.getAttackTransferMoves());
 
-		System.err.println("ATTAAAAAAACK: ");
-		for (AttackTransferMove move : attackTransferMoves) {
-			System.err.println(move.getFromRegion().getId() + "to "
-					+ move.getToRegion().getId());
-		}
 
 		String myName = state.getMyPlayerName();
-//		int armies = 5;
-//		int maxTransfers = 10;
-//		int transfers = 0;
-		// attackTransferMoves = getIdleArmiesTransferMoves(state, timeOut);
 		LinkedList<Region> edgeRegions = state.getMyEdgeTerritories();
-
-		System.err.println("Attack/transfer:");
-		for (Region region : edgeRegions) {
-			System.err.println("id: " + region.getId() + " armies: "
-					+ region.getArmies());
-		}
 
 		state.sortTerritories(edgeRegions);
 		Collections.reverse(edgeRegions);
@@ -370,11 +344,11 @@ public class BotStarter implements Bot {
 				if (!toRegion.getPlayerName().equals(myName)
 						&& fromRegion.getArmies() > toRegion
 								.armiesNeededToCapture()) {
-					
+
 					int priority = toRegion.getArmies();
-					
+
 					toRegion.setPriority(priority);
-					
+
 					if (superRegionsToConquer.contains(toRegion
 							.getSuperRegion()))
 						enemiesInOurSuperRegion.add(toRegion);
@@ -383,48 +357,38 @@ public class BotStarter implements Bot {
 				}
 
 			}
-			
+
 			Collections.sort(enemiesInOurSuperRegion);
 			Collections.reverse(enemiesInOurSuperRegion);
 			Collections.sort(enemiesNotInOurSuperRegion);
 			Collections.reverse(enemiesNotInOurSuperRegion);
 			ArrayList<Region> enemyRegions = new ArrayList<Region>();
-			
+
 			enemyRegions.addAll(enemiesInOurSuperRegion);
 			enemyRegions.addAll(enemiesNotInOurSuperRegion);
+			
+			if (enemyRegions.size() == 1) {
+				attackTransferMoves.add(new AttackTransferMove(myName,
+						fromRegion, enemyRegions.get(0),
+						fromRegion.getArmies() - 1));
+				continue;
+			}
+			
 			for (Region enemyRegion : enemyRegions) {
-				int myArmies = fromRegion.getArmies() - fromRegion.armiesNeededToDefend(possibleToRegions) - 1;
+				int myArmies = fromRegion.getArmies()
+						- fromRegion.armiesNeededToDefend(possibleToRegions)
+						- 1;
 				if (myArmies <= 0)
 					break;
 				int armiesNeededToAttack = enemyRegion.armiesNeededToCapture();
 				if (myArmies >= armiesNeededToAttack) {
-					attackTransferMoves.add(new AttackTransferMove(myName, fromRegion, enemyRegion, armiesNeededToAttack));
+					attackTransferMoves.add(new AttackTransferMove(myName,
+							fromRegion, enemyRegion, armiesNeededToAttack));
 					possibleToRegions.remove(enemyRegion);
-					fromRegion.setArmies(fromRegion.getArmies() - armiesNeededToAttack);
-				}	
+					fromRegion.setArmies(fromRegion.getArmies()
+							- armiesNeededToAttack);
+				}
 			}
-			
-				// double rand = Math.random();
-				// int r = (int) (rand*possibleToRegions.size());
-				// Region toRegion = possibleToRegions.get(r);
-
-//				if (!toRegion.getPlayerName().equals(myName)
-//						&& fromRegion.getArmies() > 6) // do an attack
-//				{
-//					attackTransferMoves.add(new AttackTransferMove(myName,
-//							fromRegion, toRegion, armies));
-//					break;
-//				} else if (toRegion.getPlayerName().equals(myName)
-//						&& fromRegion.getArmies() > 1
-//						&& transfers < maxTransfers) // do a transfer
-//				{
-//					attackTransferMoves.add(new AttackTransferMove(myName,
-//							fromRegion, toRegion, armies));
-//					transfers++;
-//					break;
-//				} else
-//					possibleToRegions.remove(toRegion);
-//			}
 		}
 
 		return attackTransferMoves;

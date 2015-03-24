@@ -338,44 +338,6 @@ public class BotState {
 						myEdgeTerritories.add(region);
 					else
 						myInnerTerritories.add(region);
-		/*} else {
-			for (int i = 0; i < myEdgeTerritories.size(); i++) {
-				Region region = myEdgeTerritories.get(i);
-				LinkedList<Region> neighbors = region.getNeighbors();
-				int regId = region.getId();
-				if (!region.ownedByPlayer(myName)) {	
-					for (Region neighbor : neighbors) 
-						if (neighbor.ownedByPlayer(myName) && 
-								!myEdgeTerritories.contains(neighbor)) {
-							myEdgeTerritories.addFirst(neighbor);
-							i++;
-							
-							if (myInnerTerritories.contains(neighbor))
-								myInnerTerritories.remove(neighbor);
-						}
-					myEdgeTerritories.remove(region);
-					i--;
-				} else {
-					if (areAllNeighborsAllies(region)) {
-						myEdgeTerritories.remove(region);
-						i--;
-						myInnerTerritories.add(region);
-					}
-					
-					for (Region neighbor : neighbors) {
-						if (neighbor.ownedByPlayer(myName))
-							if (!areAllNeighborsAllies(neighbor)) {
-								if (!myEdgeTerritories.contains(neighbor)) {
-									myEdgeTerritories.add(neighbor);
-									i++;
-								}
-							} else if (!myInnerTerritories.contains(neighbor))
-								myInnerTerritories.add(neighbor);
-					}
-				}
-			}
-		}*/
-		System.err.println("Edges: " + myEdgeTerritories.size());
 	}
 	
 	public void sortTerritories(List<? extends Territory> territories) {

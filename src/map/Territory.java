@@ -2,7 +2,7 @@ package map;
 
 public abstract class Territory implements Comparable<Territory>{
 
-	private Float priority;
+	protected Float priority;
 	protected int id;
 	
 	public Float getPriority() {

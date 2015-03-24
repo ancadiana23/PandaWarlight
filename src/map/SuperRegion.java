@@ -72,12 +72,12 @@ public class SuperRegion extends Territory{
 
 	@Override
 	public int compareTo(Territory territory) {
-		if (getPriority()==territory.getPriority()) {
+		if (priority == territory.priority) {
 			Integer thisReg = regionsNotConquered();
 			Integer otherReg = (Integer) ((SuperRegion) territory).regionsNotConquered();
 			return thisReg.compareTo(otherReg);
 		}
-		return -this.getPriority().compareTo(territory.getPriority());
+		return -this.priority.compareTo(territory.priority);
 	}
 	
 	@Override
