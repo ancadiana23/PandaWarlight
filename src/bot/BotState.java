@@ -13,6 +13,7 @@ package bot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 import map.Map;
 import map.Region;
@@ -48,6 +49,7 @@ public class BotState {
 	private LinkedList<SuperRegion> superRegToConquer;
 	private LinkedList<Region> myEdgeTerritories;
 	private LinkedList<Region> myInnerTerritories;
+	private ArrayList<AttackTransferMove> attackTransferMoves;
 	
 	public BotState()
 	{
@@ -55,6 +57,7 @@ public class BotState {
 		roundNumber = 0;
 		superRegToConquer = new LinkedList<SuperRegion>();
 		myInnerTerritories = new LinkedList<Region>();
+		attackTransferMoves = new ArrayList<AttackTransferMove>();
 	}
 	
 	public void updateSettings(String key, String[] parts)
@@ -303,6 +306,20 @@ public class BotState {
 		return myInnerTerritories;
 	}
 	
+	public ArrayList<AttackTransferMove> getAttackTransferMoves() {
+		return attackTransferMoves;
+	}
+	
+	public void addAttackTransferMove(AttackTransferMove move) {
+		attackTransferMoves.add(move);
+		Region fromRegion = move.getFromRegion();
+		fromRegion.setArmies(fromRegion.getArmies() - move.getArmies());
+	}
+	
+	public void clearAttackTransferMove() {
+		attackTransferMoves.clear();
+	}
+	
 	public boolean areAllNeighborsAllies(Region region) {
 		LinkedList<Region> neighbors = region.getNeighbors();
 		for (Region neighbor : neighbors)
@@ -312,7 +329,7 @@ public class BotState {
 	}
 	public void detMyEdgeTerritories() {	
 		myEdgeTerritories = new LinkedList<Region>();
-			
+		myInnerTerritories = new LinkedList<Region>();	
 			LinkedList<Region> regions = visibleMap.getRegions();
 			
 			for (Region region : regions) 
@@ -361,7 +378,7 @@ public class BotState {
 		System.err.println("Edges: " + myEdgeTerritories.size());
 	}
 	
-	public void sortTerritories(LinkedList<? extends Territory> territories) {
+	public void sortTerritories(List<? extends Territory> territories) {
 		for (Territory territory : territories) 
 			territory.computePriority();
 		Collections.sort(territories);
