@@ -11,10 +11,7 @@
 package bot;
 
 /**
- * This is a simple bot that does random (but correct) moves.
  * This class implements the Bot interface and overrides its Move methods.
- * You can implement these methods yourself very easily now,
- * since you can retrieve all information about the match from variable “state”.
  * When the bot decided on the move to make, it returns an ArrayList of Moves. 
  * The bot is started by creating a Parser to which you add
  * a new instance of your bot, and then the parser is started.
@@ -33,8 +30,7 @@ public class BotStarter implements Bot {
 	@Override
 	/**
 	 * A method that returns which region the bot would like to start on, the pickable regions are stored in the BotState.
-	 * The bots are asked in turn (ABBAABBAAB) where they would like to start and return a single region each time they are asked.
-	 * This method returns one random region from the given pickable regions.
+	 * It decides on the superRegions with most value and picks a Region from each to start with
 	 */
 	public Region getStartingRegion(BotState state, Long timeOut) {
 		ArrayList<Region> pickableStartingRegions = state
@@ -206,8 +202,10 @@ public class BotStarter implements Bot {
 
 	@Override
 	/**
-	 * This method is called for at first part of each round. This example puts two armies on random regions
-	 * until he has no more armies left to place.
+	 * This method is called for at first part of each round. 
+	 * We first determine the Regions we need to defend and add armies respectively
+	 * and then determine where we need more armies in order to extend 
+	 * (conquer the superRegions in the we have already decided on)
 	 * @return The list of PlaceArmiesMoves for one round
 	 */
 	public ArrayList<PlaceArmiesMove> getPlaceArmiesMoves(BotState state,
@@ -383,40 +381,50 @@ public class BotStarter implements Bot {
 
 	@Override
 	/**
-	 * This method is called for at the second part of each round. This example attacks if a region has
-	 * more than 6 armies on it, and transfers if it has less than 6 and a neighboring owned region.
+	 * This method is called for at the second part of each round. 
+	 * After getting the already decided transfers and attacks 
+	 * it sorts the edgeRegions and their neighbors and decides all the attacks that are possible
 	 * @return The list of PlaceArmiesMoves for one round
 	 */
-	public ArrayList<AttackTransferMove> getAttackTransferMoves(BotState state,
-			Long timeOut) {
+	public ArrayList<AttackTransferMove> getAttackTransferMoves(BotState state,Long timeOut) {
+		
+		//the first moves are the transfers in order to defend our edge regions
 		ArrayList<AttackTransferMove> attackTransferMoves = getIdleArmiesTransferMoves(state);
+		//after the transfer the Bot executes the moves decides in the Extend part of the Deployment
 		attackTransferMoves.addAll(state.getAttackTransferMoves());
 
 		String myName = state.getMyPlayerName();
 		LinkedList<Region> edgeRegions = state.getMyEdgeTerritories();
-
+		
+		//we sort the edge territories in ascending order of their priorities
 		state.sortTerritories(edgeRegions);
 		Collections.reverse(edgeRegions);
 		LinkedList<SuperRegion> superRegionsToConquer = state
 				.getSuperRegToConquer();
 
 		for (Region fromRegion : edgeRegions) {
+			//the regions we can attack from our current edgeRegion
 			ArrayList<Region> possibleToRegions = new ArrayList<Region>();
 			possibleToRegions.addAll(fromRegion.getNeighbors());
 			ArrayList<Region> enemiesInOurSuperRegion = new ArrayList<Region>();
 			ArrayList<Region> enemiesNotInOurSuperRegion = new ArrayList<Region>();
-
+			
+			//for every edgeRegion we look through its neighbors
 			for (int i = 0; i < possibleToRegions.size(); i++) {
 				Region toRegion = possibleToRegions.get(i);
-
+				
+				//if the neighbor is not ours and we can capture it we will attack it
 				if (!toRegion.getPlayerName().equals(myName)
 						&& fromRegion.getArmies() > toRegion
 								.armiesNeededToCapture()) {
 
+					//the neighbors will be sorted by their numbers of armies
 					int priority = toRegion.getArmies();
 
 					toRegion.setPriority(priority);
 
+					//the neighbors are divided into two groups in order for the Bot to focus 
+					//first on conquering the superRegions we want and then on just expanding
 					if (superRegionsToConquer.contains(toRegion
 							.getSuperRegion()))
 						enemiesInOurSuperRegion.add(toRegion);
@@ -426,6 +434,8 @@ public class BotStarter implements Bot {
 
 			}
 
+			//both groups of neighbors are sorted in ascending order of their numbers of armies
+			//and added together in the same list
 			Collections.sort(enemiesInOurSuperRegion);
 			Collections.reverse(enemiesInOurSuperRegion);
 			Collections.sort(enemiesNotInOurSuperRegion);
@@ -435,6 +445,8 @@ public class BotStarter implements Bot {
 			enemyRegions.addAll(enemiesInOurSuperRegion);
 			enemyRegions.addAll(enemiesNotInOurSuperRegion);
 
+	
+			//if there is just one neighbor we attack it with all we have got
 			if (enemyRegions.size() == 1) {
 				attackTransferMoves.add(new AttackTransferMove(myName,
 						fromRegion, enemyRegions.get(0),
@@ -442,6 +454,9 @@ public class BotStarter implements Bot {
 				continue;
 			}
 
+			
+			//otherwise we attack each neighbor with the exact number of armies that are needed to capture it
+			//then we remove it from our list and update the state of our armies
 			for (Region enemyRegion : enemyRegions) {
 				int myArmies = fromRegion.getArmies()
 						- fromRegion.armiesNeededToDefend(possibleToRegions)
