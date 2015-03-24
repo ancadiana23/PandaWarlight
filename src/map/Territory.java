@@ -14,9 +14,7 @@ public abstract class Territory implements Comparable<Territory>{
 	}
 
 	@Override
-	public int compareTo(Territory territory) {
-		return -this.getPriority().compareTo(territory.getPriority());
-	}
+	public abstract int compareTo(Territory territory);
 	
 	@Override
 	public boolean equals(Object o) {

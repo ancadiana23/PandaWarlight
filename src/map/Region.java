@@ -20,6 +20,7 @@ public class Region extends Territory{
 	private LinkedList<Region> neighbors;
 	private SuperRegion superRegion;
 	private int armies;
+	private int armiesForDefense;
 	private String playerName;
 	
 	public Region(int id, SuperRegion superRegion)
@@ -29,6 +30,7 @@ public class Region extends Territory{
 		this.neighbors = new LinkedList<Region>();
 		this.playerName = "unknown";
 		this.armies = 0;
+		this.armiesForDefense = 0;
 		
 		superRegion.addSubRegion(this);
 	}
@@ -124,6 +126,14 @@ public class Region extends Territory{
 			return playerName;
 	}
 
+	public int getArmiesForDefense() {
+		return armiesForDefense;
+	}
+	
+	public void setArmiesForDefense(int armiesForDefense) {
+		this.armiesForDefense = armiesForDefense;
+	}
+	
 	@Override
 	public void computePriority() {
 		int enemyArmies = 0;
@@ -142,7 +152,7 @@ public class Region extends Territory{
 		return (int) Math.round((0.6 * armies));
 	}
 	public int armiesNeededToDefend(){
-		int enemyArmies = (int) Math.abs(getPriority() + armies);
+		int enemyArmies = (int) Math.abs(getPriority() + armies - 1);
 		return (int) (Math.round((enemyArmies * 0.6)) - armies + 1);
 	}
 
@@ -174,6 +184,11 @@ public class Region extends Territory{
 				counter++;
 		}
 		return counter;
+	}
+
+	@Override
+	public int compareTo(Territory territory) {
+		return -this.getPriority().compareTo(territory.getPriority());
 	}
 	
 }
