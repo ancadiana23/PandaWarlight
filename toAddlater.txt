@@ -35,3 +35,27 @@
 				}
 			}
 		}*/
+
+
+
+
+
+public int getUnknownNeighbors() {
+		int counter = 0;
+		for (Region neighbor : neighbors) {
+			if (neighbor.ownedByPlayer("unknown")  && neighbor.armies == 0)
+				counter++;
+		}
+		return counter;
+	}
+
+
+public int getNeutralNeighbors(String enemy, String me) {
+		int counter = 0;
+		for (Region neighbor : neighbors) {
+			if (!neighbor.ownedByPlayer(enemy) && !neighbor.ownedByPlayer(me)
+					&& neighbor.armies != 0)
+				counter++;
+		}
+		return counter;
+	}
