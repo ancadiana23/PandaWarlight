@@ -380,7 +380,7 @@ public class BotState {
 	 */
 	public void detMyEdgeTerritories() {
 		myEdgeTerritories = new LinkedList<Region>();
-
+		myInnerTerritories = new LinkedList<Region>();
 		LinkedList<Region> regions = visibleMap.getRegions();
 
 		for (Region region : regions)

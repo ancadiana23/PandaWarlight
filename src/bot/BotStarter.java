@@ -297,7 +297,6 @@ public class BotStarter implements Bot {
 			return placeArmiesMoves;
 
 		// Random placement, but chooses from our edges
-		System.err.println("random: " + armiesLeft + "round: " + state.getRoundNumber());
 		double rand = Math.random();
 		int r = (int) (rand * edgeTerritories.size());
 		Region region = edgeTerritories.get(r);
@@ -466,16 +465,11 @@ public class BotStarter implements Bot {
 						fromRegion.getArmies() - 1));
 				continue;
 			}
-
-			
 			//otherwise we attack each neighbor with the exact number of armies that are needed to capture it
 			//then we remove it from our list and update the state of our armies
 			for (Region enemyRegion : enemyRegions) {
 				if (neutralTargetRegions.contains(enemyRegion))
 					continue;
-				else {
-					System.err.println("region: " + enemyRegion.getId());
-				}
 				
 				int myArmies = fromRegion.getArmies()
 						- fromRegion.armiesNeededToDefend(possibleToRegions)
@@ -492,6 +486,7 @@ public class BotStarter implements Bot {
 					
 					if (!enemyRegion.ownedByPlayer(myName) && !enemyRegion.ownedByPlayer(enemyName))
 						neutralTargetRegions.add(enemyRegion);
+					
 					possibleToRegions.remove(enemyRegion);
 					fromRegion.setArmies(fromRegion.getArmies()
 							- armiesNeededToAttack);
