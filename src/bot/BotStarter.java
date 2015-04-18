@@ -137,18 +137,15 @@ public class BotStarter implements Bot {
 			ArrayList<PlaceArmiesMove> placeArmiesMoves, BotState state) {
 		Region notEnough = null;
 		String myName = state.getMyPlayerName();
-
-		// Clear the list of attacks/tranfers (they were the attacks from the
-		// last round)
-		state.clearAttackTransferMove();
-
+		String enemyName = state.getOpponentPlayerName();
+		LinkedList<Region> neutralTargetRegions = state.getNeutralTargetRegions();
+		
 		// Deploy the armies in the regions which belong to the SuperRegions
-		// with
-		// the biggest priorities
+		// with the biggest priorities
 		for (SuperRegion superRegion : superRegions) {
 			for (Region region : edgeRegions) {
 				LinkedList<Region> neighbors = region.getNeighbors();
-
+				
 				// Search through each of our edge regions for the neighbors we
 				// can conquer
 				// and deploy to the current region the necessary amount of
@@ -156,8 +153,9 @@ public class BotStarter implements Bot {
 				// those neighbors.
 				for (Region neighbor : neighbors)
 					if (!neighbor.ownedByPlayer(myName)
-							&& neighbor.getSuperRegion().getId() == superRegion
-									.getId()) {
+							&& neighbor.getSuperRegion().getId() == superRegion.getId()
+							&& !neutralTargetRegions.contains(neighbor)) {
+						
 						int neededArmies = neighbor.armiesNeededToCapture();
 						int toDeploy = neededArmies - region.getArmies() + 1;
 
@@ -165,13 +163,17 @@ public class BotStarter implements Bot {
 							toDeploy += region.getArmiesForDefense();
 
 						if (toDeploy > 0)
-							if (armiesLeft >= neededArmies) {
+							if (armiesLeft >= toDeploy) {
 								placeArmiesMoves.add(new PlaceArmiesMove(
 										myName, region, toDeploy));
 								region.setArmies(toDeploy + region.getArmies());
 								state.addAttackTransferMove(new AttackTransferMove(
 										myName, region, neighbor, neededArmies));
-								armiesLeft -= toDeploy;
+								
+								if (!region.ownedByPlayer(enemyName) && !region.ownedByPlayer(myName))
+									neutralTargetRegions.add(region);
+								
+								armiesLeft -= neededArmies;
 							}
 							// If we will have armies left, this will be the
 							// region in which we will
@@ -218,22 +220,30 @@ public class BotStarter implements Bot {
 		// Determine the edges
 		state.detMyEdgeTerritories();
 		LinkedList<Region> edgeTerritories = state.getMyEdgeTerritories();
-		boolean visibleEnemies = false;
-
+//		boolean visibleEnemies = false;
+		LinkedList<Region> endageredTerritories = new LinkedList<Region>();
+		
 		// See if there are visible enemies
 		for (Region region : edgeTerritories)
 			if (region.getEnemyNeighbors(state.getOpponentPlayerName()) != 0) {
-				visibleEnemies = true;
-				break;
+//				visibleEnemies = true;
+				endageredTerritories.add(region);
+//				break;
 			}
 
 		// Sort our edge territories by their priorities
-		state.sortTerritories(edgeTerritories);
+		state.sortTerritories(endageredTerritories);
 
+		// Clear the list of attacks/tranfers and the list of neutral targets we want to capture
+		//(they were the attacks from the last round)
+		state.clearAttackTransferMove();
+		state.clearNeutralTargetRegions();
+		
 		// If there are enemies neighboring our territories,
 		// defend our territories
-		if (visibleEnemies) {
-			armiesLeft = defend(edgeTerritories, armiesLeft, placeArmiesMoves,
+//		if (visibleEnemies) {
+		if (!endageredTerritories.isEmpty()) {
+			armiesLeft = defend(endageredTerritories, armiesLeft, placeArmiesMoves,
 					myName);
 
 			if (armiesLeft <= 0)
@@ -286,6 +296,7 @@ public class BotStarter implements Bot {
 			return placeArmiesMoves;
 
 		// Random placement, but chooses from our edges
+		System.err.println("random: " + armiesLeft + "round: " + state.getRoundNumber());
 		while (armiesLeft > 0) {
 			double rand = Math.random();
 			int r = (int) (rand * edgeTerritories.size());
@@ -298,7 +309,6 @@ public class BotStarter implements Bot {
 				armiesLeft -= armies;
 			}
 		}
-
 		return placeArmiesMoves;
 	}
 
@@ -365,14 +375,17 @@ public class BotStarter implements Bot {
 
 	     //We sort the edges we found to get the highest priority one,
 	     //then determine how we got to that edge and transfer everything to that particular region
-	     state.sortTerritories(temp);
-	     for (int i = 0; i < edgeNeighbors.size(); ++i)
-	      if (edgeNeighbors.get(i) == temp.get(0)) {
-	       res.add(new AttackTransferMove(state
-	         .getMyPlayerName(), innerRegion, from
-	         .get(i), innerRegion.getArmies() - 1));
-	       break;
-	      }
+	     if(!temp.isEmpty()) {	 
+	    	 state.sortTerritories(temp);
+		    
+	    	 for (int i = 0; i < edgeNeighbors.size(); ++i)
+		      if (edgeNeighbors.get(i) == temp.get(0)) {
+		       res.add(new AttackTransferMove(state
+		         .getMyPlayerName(), innerRegion, from
+		         .get(i), innerRegion.getArmies() - 1));
+		       break;
+		      }
+	     }
 	    }
 	   }
 
@@ -393,8 +406,11 @@ public class BotStarter implements Bot {
 		//after the transfer the Bot executes the moves decides in the Extend part of the Deployment
 		attackTransferMoves.addAll(state.getAttackTransferMoves());
 
+		
 		String myName = state.getMyPlayerName();
+		String enemyName = state.getOpponentPlayerName();
 		LinkedList<Region> edgeRegions = state.getMyEdgeTerritories();
+		LinkedList<Region> neutralTargetRegions = state.getNeutralTargetRegions();
 		
 		//we sort the edge territories in ascending order of their priorities
 		state.sortTerritories(edgeRegions);
@@ -458,17 +474,24 @@ public class BotStarter implements Bot {
 			//otherwise we attack each neighbor with the exact number of armies that are needed to capture it
 			//then we remove it from our list and update the state of our armies
 			for (Region enemyRegion : enemyRegions) {
+				if (neutralTargetRegions.contains(enemyRegion))
+					continue;
+				
 				int myArmies = fromRegion.getArmies()
 						- fromRegion.armiesNeededToDefend(possibleToRegions)
 						- 1;
 
 				if (myArmies <= 0)
 					break;
+				
 				int armiesNeededToAttack = enemyRegion.armiesNeededToCapture();
 
 				if (myArmies >= armiesNeededToAttack) {
 					attackTransferMoves.add(new AttackTransferMove(myName,
 							fromRegion, enemyRegion, armiesNeededToAttack));
+					
+					if (!enemyRegion.ownedByPlayer(myName) && !enemyRegion.ownedByPlayer(enemyName))
+						neutralTargetRegions.add(enemyRegion);
 					possibleToRegions.remove(enemyRegion);
 					fromRegion.setArmies(fromRegion.getArmies()
 							- armiesNeededToAttack);

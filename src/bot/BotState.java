@@ -70,6 +70,8 @@ public class BotState {
 	// the list of attack/transfer moves
 	private ArrayList<AttackTransferMove> attackTransferMoves;
 
+	//the list of neutral target regions to conquer 
+	private LinkedList<Region> neutralTargetRegions;
 	/**
 	 * Constructor.
 	 */
@@ -79,6 +81,7 @@ public class BotState {
 		superRegToConquer = new LinkedList<SuperRegion>();
 		myInnerTerritories = new LinkedList<Region>();
 		attackTransferMoves = new ArrayList<AttackTransferMove>();
+		neutralTargetRegions = new LinkedList<Region>();
 	}
 
 	/**
@@ -324,6 +327,10 @@ public class BotState {
 	public ArrayList<AttackTransferMove> getAttackTransferMoves() {
 		return attackTransferMoves;
 	}
+	
+	public LinkedList<Region> getNeutralTargetRegions() {
+		return neutralTargetRegions;
+	}
 
 	/**
 	 * Adds an AttackTransferMove to the list of attackTransferMoves.
@@ -343,6 +350,13 @@ public class BotState {
 	 */
 	public void clearAttackTransferMove() {
 		attackTransferMoves.clear();
+	}
+	
+	/**
+	 * Resets the neutralTargetRegions.
+	 */
+	public void clearNeutralTargetRegions() {
+		neutralTargetRegions.clear();
 	}
 
 	/**
