@@ -3,6 +3,7 @@ Bojinovici Andrei-Lucian, 322CA
 Patrascanu Andra-Maria, 322CA
 Vicol Anca-Diana, 322CA
 
+Etapa 1:
 
 Strategia noastra trateaza doua cazuri: 
 
@@ -27,3 +28,18 @@ Apoi atacam din teritoriile de pe margine (care nu au numai aliati in jur) terit
 
 Partea random de la deploy este o modificare a codului original de pe site.
 Scheletul de cod este de asemenea de pe site-ul pub.theaigames.com, la care noi am adaugat ce ne trebuie.
+
+Etapa 2:
+
+Update-uri: 
+-prioritatea superregiunii este acum determinata de un raport intre bonus-ul acordat si
+nr. total de armate ale subregiunilor sale
+-am adaugat o lista care retine ce regiuni de pe margine sunt in pericol(au cel putin un 
+inamic ca vecin) si am transmis aceasta lista functiei de defend, astfel optimizand
+algoritmul de aparare (vom stii direct ce regiuni trebuie aparate, in loc sa iteram prin toate
+regiunile de pe margine)
+-am inceput implementarea solutiei pentru o problema in care 2 regiuni diferite atacau acelasi vecin neutru; dorim sa folosim lista neutralTargetRegions pentru a stii daca deja am atacat
+o regiune neutra pentru a nu o ataca din nou
+-am optimizat partea "random" de la sfarsit-ul functiei care pune armate pe regiuni astfel incat sa se faca un "pooling" - acum pune toate armatele ramase pe o singura regiune, in loc 
+sa le distribuie probabilistic egal, astfel crescand sansele ca o regiune sa aiba mai multe armate acumulate, ca in viitor sa invinga mai usor inamicii
+-am rezolvat mici buguri

@@ -224,24 +224,19 @@ public class BotStarter implements Bot {
 		// Determine the edges
 		state.detMyEdgeTerritories();
 		LinkedList<Region> edgeTerritories = state.getMyEdgeTerritories();
-		// boolean visibleEnemies = false;
 		LinkedList<Region> endageredTerritories = new LinkedList<Region>();
 
 		// See if there are visible enemies
 		for (Region region : edgeTerritories)
-			if (region.getEnemyNeighbors(state.getOpponentPlayerName()) != 0) {
-				// visibleEnemies = true;
+			if (region.getEnemyNeighbors(state.getOpponentPlayerName()) != 0)
 				endageredTerritories.add(region);
-				// break;
-			}
 
 		// Sort our edge territories by their priorities
 		state.sortTerritories(endageredTerritories);
 		state.sortTerritories(edgeTerritories);
 
 		// Clear the list of attacks/tranfers and the list of neutral targets we
-		// want to capture
-		// (they were the attacks from the last round)
+		// want to capture (they were the attacks from the last round)
 		state.clearAttackTransferMove();
 		state.clearNeutralTargetRegions();
 
@@ -286,7 +281,6 @@ public class BotStarter implements Bot {
 
 		// If there are enemies neighboring our territories,
 		// defend our territories
-		// if (visibleEnemies) {
 		if (!endageredTerritories.isEmpty()) {
 			armiesLeft = defend(endageredTerritories, armiesLeft,
 					placeArmiesMoves, myName);
