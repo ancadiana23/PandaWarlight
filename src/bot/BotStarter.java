@@ -167,7 +167,7 @@ public class BotStarter implements Bot {
 							if (armiesLeft >= toDeploy) {
 								placeArmiesMoves.add(new PlaceArmiesMove(
 										myName, region, toDeploy));
-								region.setArmies(toDeploy + region.getArmies());
+								region.setArmies(region.getArmies() + toDeploy - neededArmies);
 								state.addAttackTransferMove(new AttackTransferMove(
 										myName, region, neighbor, neededArmies));
 								
@@ -215,7 +215,6 @@ public class BotStarter implements Bot {
 			Long timeOut) {
 		ArrayList<PlaceArmiesMove> placeArmiesMoves = new ArrayList<PlaceArmiesMove>();
 		String myName = state.getMyPlayerName();
-		int armies = 1;
 		int armiesLeft = state.getStartingArmies();
 
 		// Determine the edges
