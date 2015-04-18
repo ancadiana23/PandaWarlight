@@ -144,6 +144,7 @@ public class BotStarter implements Bot {
 		// with the biggest priorities
 		for (SuperRegion superRegion : superRegions) {
 			for (Region region : edgeRegions) {
+				
 				LinkedList<Region> neighbors = region.getNeighbors();
 				
 				// Search through each of our edge regions for the neighbors we
@@ -173,7 +174,7 @@ public class BotStarter implements Bot {
 								if (!region.ownedByPlayer(enemyName) && !region.ownedByPlayer(myName))
 									neutralTargetRegions.add(region);
 								
-								armiesLeft -= neededArmies;
+								armiesLeft -= toDeploy;
 							}
 							// If we will have armies left, this will be the
 							// region in which we will
@@ -214,7 +215,7 @@ public class BotStarter implements Bot {
 			Long timeOut) {
 		ArrayList<PlaceArmiesMove> placeArmiesMoves = new ArrayList<PlaceArmiesMove>();
 		String myName = state.getMyPlayerName();
-		int armies = 2;
+		int armies = 1;
 		int armiesLeft = state.getStartingArmies();
 
 		// Determine the edges
@@ -233,6 +234,7 @@ public class BotStarter implements Bot {
 
 		// Sort our edge territories by their priorities
 		state.sortTerritories(endageredTerritories);
+		state.sortTerritories(edgeTerritories);
 
 		// Clear the list of attacks/tranfers and the list of neutral targets we want to capture
 		//(they were the attacks from the last round)
@@ -297,18 +299,14 @@ public class BotStarter implements Bot {
 
 		// Random placement, but chooses from our edges
 		System.err.println("random: " + armiesLeft + "round: " + state.getRoundNumber());
-		while (armiesLeft > 0) {
-			double rand = Math.random();
-			int r = (int) (rand * edgeTerritories.size());
-			Region region = edgeTerritories.get(r);
+		double rand = Math.random();
+		int r = (int) (rand * edgeTerritories.size());
+		Region region = edgeTerritories.get(r);
 
-			if (region.ownedByPlayer(myName)) {
-				placeArmiesMoves
-						.add(new PlaceArmiesMove(myName, region, armies));
-				region.setArmies(armies + region.getArmies());
-				armiesLeft -= armies;
-			}
-		}
+		placeArmiesMoves
+				.add(new PlaceArmiesMove(myName, region, armiesLeft));
+		region.setArmies(armiesLeft + region.getArmies());
+		
 		return placeArmiesMoves;
 	}
 
@@ -476,6 +474,9 @@ public class BotStarter implements Bot {
 			for (Region enemyRegion : enemyRegions) {
 				if (neutralTargetRegions.contains(enemyRegion))
 					continue;
+				else {
+					System.err.println("region: " + enemyRegion.getId());
+				}
 				
 				int myArmies = fromRegion.getArmies()
 						- fromRegion.armiesNeededToDefend(possibleToRegions)
