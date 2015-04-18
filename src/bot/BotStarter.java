@@ -138,15 +138,16 @@ public class BotStarter implements Bot {
 		Region notEnough = null;
 		String myName = state.getMyPlayerName();
 		String enemyName = state.getOpponentPlayerName();
-		LinkedList<Region> neutralTargetRegions = state.getNeutralTargetRegions();
-		
+		LinkedList<Region> neutralTargetRegions = state
+				.getNeutralTargetRegions();
+
 		// Deploy the armies in the regions which belong to the SuperRegions
 		// with the biggest priorities
 		for (SuperRegion superRegion : superRegions) {
 			for (Region region : edgeRegions) {
-				
+
 				LinkedList<Region> neighbors = region.getNeighbors();
-				
+
 				// Search through each of our edge regions for the neighbors we
 				// can conquer
 				// and deploy to the current region the necessary amount of
@@ -154,9 +155,10 @@ public class BotStarter implements Bot {
 				// those neighbors.
 				for (Region neighbor : neighbors)
 					if (!neighbor.ownedByPlayer(myName)
-							&& neighbor.getSuperRegion().getId() == superRegion.getId()
+							&& neighbor.getSuperRegion().getId() == superRegion
+									.getId()
 							&& !neutralTargetRegions.contains(neighbor)) {
-						
+
 						int neededArmies = neighbor.armiesNeededToCapture();
 						int toDeploy = neededArmies - region.getArmies() + 1;
 
@@ -167,13 +169,15 @@ public class BotStarter implements Bot {
 							if (armiesLeft >= toDeploy) {
 								placeArmiesMoves.add(new PlaceArmiesMove(
 										myName, region, toDeploy));
-								region.setArmies(region.getArmies() + toDeploy - neededArmies);
+								region.setArmies(region.getArmies() + toDeploy
+										- neededArmies);
 								state.addAttackTransferMove(new AttackTransferMove(
 										myName, region, neighbor, neededArmies));
-								
-								if (!region.ownedByPlayer(enemyName) && !region.ownedByPlayer(myName))
+
+								if (!region.ownedByPlayer(enemyName)
+										&& !region.ownedByPlayer(myName))
 									neutralTargetRegions.add(region);
-								
+
 								armiesLeft -= toDeploy;
 							}
 							// If we will have armies left, this will be the
@@ -220,36 +224,26 @@ public class BotStarter implements Bot {
 		// Determine the edges
 		state.detMyEdgeTerritories();
 		LinkedList<Region> edgeTerritories = state.getMyEdgeTerritories();
-//		boolean visibleEnemies = false;
+		// boolean visibleEnemies = false;
 		LinkedList<Region> endageredTerritories = new LinkedList<Region>();
-		
+
 		// See if there are visible enemies
 		for (Region region : edgeTerritories)
 			if (region.getEnemyNeighbors(state.getOpponentPlayerName()) != 0) {
-//				visibleEnemies = true;
+				// visibleEnemies = true;
 				endageredTerritories.add(region);
-//				break;
+				// break;
 			}
 
 		// Sort our edge territories by their priorities
 		state.sortTerritories(endageredTerritories);
 		state.sortTerritories(edgeTerritories);
 
-		// Clear the list of attacks/tranfers and the list of neutral targets we want to capture
-		//(they were the attacks from the last round)
+		// Clear the list of attacks/tranfers and the list of neutral targets we
+		// want to capture
+		// (they were the attacks from the last round)
 		state.clearAttackTransferMove();
 		state.clearNeutralTargetRegions();
-		
-		// If there are enemies neighboring our territories,
-		// defend our territories
-//		if (visibleEnemies) {
-		if (!endageredTerritories.isEmpty()) {
-			armiesLeft = defend(endageredTerritories, armiesLeft, placeArmiesMoves,
-					myName);
-
-			if (armiesLeft <= 0)
-				return placeArmiesMoves;
-		}
 
 		// Get the list of the SuperRegions we want to conquer
 		LinkedList<SuperRegion> superRegionsToConquer = state
@@ -290,6 +284,18 @@ public class BotStarter implements Bot {
 		// is first)
 		state.sortTerritories(superRegionsToConquer);
 
+		// If there are enemies neighboring our territories,
+		// defend our territories
+		// if (visibleEnemies) {
+		if (!endageredTerritories.isEmpty()) {
+			armiesLeft = defend(endageredTerritories, armiesLeft,
+					placeArmiesMoves, myName);
+
+			if (armiesLeft <= 0)
+				return placeArmiesMoves;
+		}
+		
+		
 		// Deploy armies to the regions from which we want to expand
 		armiesLeft = deployToExpand(superRegionsToConquer, edgeTerritories,
 				armiesLeft, placeArmiesMoves, state);
@@ -301,92 +307,94 @@ public class BotStarter implements Bot {
 		int r = (int) (rand * edgeTerritories.size());
 		Region region = edgeTerritories.get(r);
 
-		placeArmiesMoves
-				.add(new PlaceArmiesMove(myName, region, armiesLeft));
+		placeArmiesMoves.add(new PlaceArmiesMove(myName, region, armiesLeft));
 		region.setArmies(armiesLeft + region.getArmies());
-		
+
 		return placeArmiesMoves;
 	}
 
-	 /**
-	  * The regions that have no neighboring enemies or neutral lands have no use for their armies.
-	  * This method uses a breatdh-first search to determine where these idle armies should be
-	  * transfered to.
-	  * @param state
-	  * @return
-	  */
-	 private ArrayList<AttackTransferMove> getIdleArmiesTransferMoves(
-	   BotState state) {
-	  
-	  ArrayList<AttackTransferMove> res = new ArrayList<AttackTransferMove>();
-	  LinkedList<Region> innerRegions = state.getMyInnerTerritories();
-	  LinkedList<Region> edgeTerritories = state.getMyEdgeTerritories();
+	/**
+	 * The regions that have no neighboring enemies or neutral lands have no use
+	 * for their armies. This method uses a breatdh-first search to determine
+	 * where these idle armies should be transfered to.
+	 * 
+	 * @param state
+	 * @return
+	 */
+	private ArrayList<AttackTransferMove> getIdleArmiesTransferMoves(
+			BotState state) {
 
-	  //We process every region that has idle armies
-	  for (Region innerRegion : innerRegions)
-	   if (innerRegion.getArmies() > 1) {
+		ArrayList<AttackTransferMove> res = new ArrayList<AttackTransferMove>();
+		LinkedList<Region> innerRegions = state.getMyInnerTerritories();
+		LinkedList<Region> edgeTerritories = state.getMyEdgeTerritories();
 
-	    LinkedList<Region> edgeNeighbors = new LinkedList<Region>();
-	    LinkedList<Region> neighbors = innerRegion.getNeighbors();
-	    
-	    //We look for edges we could move into right now
-	    for (Region neighbor : neighbors)
-	     if (edgeTerritories.contains(neighbor))
-	      edgeNeighbors.add(neighbor);
+		// We process every region that has idle armies
+		for (Region innerRegion : innerRegions)
+			if (innerRegion.getArmies() > 1) {
 
-	    //If we find any, we move into the highest priority one
-	    if (!edgeNeighbors.isEmpty()) {
-	     state.sortTerritories(edgeNeighbors);
-	     res.add(new AttackTransferMove(state.getMyPlayerName(),
-	       innerRegion, edgeNeighbors.get(0), innerRegion
-	         .getArmies() - 1));
-	    } else {
-	     //We use an auxiliary list: when we reach an edge, this list determines what
-	     //neighbor we found it from
-	     LinkedList<Region> from = new LinkedList<Region>();
-	     from.addAll(neighbors);
-	     
-	     //We reuse edgeNeighbors as a queue
-	     ArrayList<Region> temp = new ArrayList<Region>();
-	     edgeNeighbors = neighbors;
-	     
-	     //We start the BFS
-	     int curr = 0;
-	     while (curr < edgeNeighbors.size()) {
-	      LinkedList<Region> tempNeighbors = edgeNeighbors.get(
-	        curr).getNeighbors();
-	      for (Region next : tempNeighbors)
-	       //Check if we found an edge
-	       if (edgeTerritories.contains(next)) {
-	        temp.add(next);
-	       }
-	       else {
-	        if (!edgeNeighbors.contains(next)) {
-	         from.add(from.get(curr));
-	         edgeNeighbors.add(next);
-	        }
-	       }
-	      ++curr;
-	     }
+				LinkedList<Region> edgeNeighbors = new LinkedList<Region>();
+				LinkedList<Region> neighbors = innerRegion.getNeighbors();
 
-	     //We sort the edges we found to get the highest priority one,
-	     //then determine how we got to that edge and transfer everything to that particular region
-	     if(!temp.isEmpty()) {	 
-	    	 state.sortTerritories(temp);
-		    
-	    	 for (int i = 0; i < edgeNeighbors.size(); ++i)
-		      if (edgeNeighbors.get(i) == temp.get(0)) {
-		       res.add(new AttackTransferMove(state
-		         .getMyPlayerName(), innerRegion, from
-		         .get(i), innerRegion.getArmies() - 1));
-		       break;
-		      }
-	     }
-	    }
-	   }
+				// We look for edges we could move into right now
+				for (Region neighbor : neighbors)
+					if (edgeTerritories.contains(neighbor))
+						edgeNeighbors.add(neighbor);
 
-	  return res;
-	 }
+				// If we find any, we move into the highest priority one
+				if (!edgeNeighbors.isEmpty()) {
+					state.sortTerritories(edgeNeighbors);
+					res.add(new AttackTransferMove(state.getMyPlayerName(),
+							innerRegion, edgeNeighbors.get(0), innerRegion
+									.getArmies() - 1));
+				} else {
+					// We use an auxiliary list: when we reach an edge, this
+					// list determines what
+					// neighbor we found it from
+					LinkedList<Region> from = new LinkedList<Region>();
+					from.addAll(neighbors);
+
+					// We reuse edgeNeighbors as a queue
+					ArrayList<Region> temp = new ArrayList<Region>();
+					edgeNeighbors = neighbors;
+
+					// We start the BFS
+					int curr = 0;
+					while (curr < edgeNeighbors.size()) {
+						LinkedList<Region> tempNeighbors = edgeNeighbors.get(
+								curr).getNeighbors();
+						for (Region next : tempNeighbors)
+							// Check if we found an edge
+							if (edgeTerritories.contains(next)) {
+								temp.add(next);
+							} else {
+								if (!edgeNeighbors.contains(next)) {
+									from.add(from.get(curr));
+									edgeNeighbors.add(next);
+								}
+							}
+						++curr;
+					}
+
+					// We sort the edges we found to get the highest priority
+					// one,
+					// then determine how we got to that edge and transfer
+					// everything to that particular region
+					if (!temp.isEmpty()) {
+						state.sortTerritories(temp);
+
+						for (int i = 0; i < edgeNeighbors.size(); ++i)
+							if (edgeNeighbors.get(i) == temp.get(0)) {
+								res.add(new AttackTransferMove(state
+										.getMyPlayerName(), innerRegion, from
+										.get(i), innerRegion.getArmies() - 1));
+								break;
+							}
+					}
+				}
+			}
+
+		return res;
+	}
 
 	@Override
 	/**
@@ -395,48 +403,53 @@ public class BotStarter implements Bot {
 	 * it sorts the edgeRegions and their neighbors and decides all the attacks that are possible
 	 * @return The list of PlaceArmiesMoves for one round
 	 */
-	public ArrayList<AttackTransferMove> getAttackTransferMoves(BotState state,Long timeOut) {
-		
-		//the first moves are the transfers in order to defend our edge regions
+	public ArrayList<AttackTransferMove> getAttackTransferMoves(BotState state,
+			Long timeOut) {
+
+		// the first moves are the transfers in order to defend our edge regions
 		ArrayList<AttackTransferMove> attackTransferMoves = getIdleArmiesTransferMoves(state);
-		//after the transfer the Bot executes the moves decides in the Extend part of the Deployment
+		// after the transfer the Bot executes the moves decides in the Extend
+		// part of the Deployment
 		attackTransferMoves.addAll(state.getAttackTransferMoves());
 
-		
 		String myName = state.getMyPlayerName();
 		String enemyName = state.getOpponentPlayerName();
 		LinkedList<Region> edgeRegions = state.getMyEdgeTerritories();
-		LinkedList<Region> neutralTargetRegions = state.getNeutralTargetRegions();
-		
-		//we sort the edge territories in ascending order of their priorities
+		LinkedList<Region> neutralTargetRegions = state
+				.getNeutralTargetRegions();
+
+		// we sort the edge territories in ascending order of their priorities
 		state.sortTerritories(edgeRegions);
 		Collections.reverse(edgeRegions);
 		LinkedList<SuperRegion> superRegionsToConquer = state
 				.getSuperRegToConquer();
 
 		for (Region fromRegion : edgeRegions) {
-			//the regions we can attack from our current edgeRegion
+			// the regions we can attack from our current edgeRegion
 			ArrayList<Region> possibleToRegions = new ArrayList<Region>();
 			possibleToRegions.addAll(fromRegion.getNeighbors());
 			ArrayList<Region> enemiesInOurSuperRegion = new ArrayList<Region>();
 			ArrayList<Region> enemiesNotInOurSuperRegion = new ArrayList<Region>();
-			
-			//for every edgeRegion we look through its neighbors
+
+			// for every edgeRegion we look through its neighbors
 			for (int i = 0; i < possibleToRegions.size(); i++) {
 				Region toRegion = possibleToRegions.get(i);
-				
-				//if the neighbor is not ours and we can capture it we will attack it
+
+				// if the neighbor is not ours and we can capture it we will
+				// attack it
 				if (!toRegion.getPlayerName().equals(myName)
 						&& fromRegion.getArmies() > toRegion
 								.armiesNeededToCapture()) {
 
-					//the neighbors will be sorted by their numbers of armies
+					// the neighbors will be sorted by their numbers of armies
 					int priority = toRegion.getArmies();
 
 					toRegion.setPriority(priority);
 
-					//the neighbors are divided into two groups in order for the Bot to focus 
-					//first on conquering the superRegions we want and then on just expanding
+					// the neighbors are divided into two groups in order for
+					// the Bot to focus
+					// first on conquering the superRegions we want and then on
+					// just expanding
 					if (superRegionsToConquer.contains(toRegion
 							.getSuperRegion()))
 						enemiesInOurSuperRegion.add(toRegion);
@@ -446,8 +459,9 @@ public class BotStarter implements Bot {
 
 			}
 
-			//both groups of neighbors are sorted in ascending order of their numbers of armies
-			//and added together in the same list
+			// both groups of neighbors are sorted in ascending order of their
+			// numbers of armies
+			// and added together in the same list
 			Collections.sort(enemiesInOurSuperRegion);
 			Collections.reverse(enemiesInOurSuperRegion);
 			Collections.sort(enemiesNotInOurSuperRegion);
@@ -457,36 +471,39 @@ public class BotStarter implements Bot {
 			enemyRegions.addAll(enemiesInOurSuperRegion);
 			enemyRegions.addAll(enemiesNotInOurSuperRegion);
 
-	
-			//if there is just one neighbor we attack it with all we have got
-			if (enemyRegions.size() == 1) {
+			// if there is just one neighbor we attack it with all we have got if it's worth it
+			if (enemyRegions.size() == 1 && 
+					fromRegion.getArmies() * 0.6 > enemyRegions.get(0) .getArmies() * 0.7) {
 				attackTransferMoves.add(new AttackTransferMove(myName,
 						fromRegion, enemyRegions.get(0),
 						fromRegion.getArmies() - 1));
 				continue;
 			}
-			//otherwise we attack each neighbor with the exact number of armies that are needed to capture it
-			//then we remove it from our list and update the state of our armies
+			// otherwise we attack each neighbor with the exact number of armies
+			// that are needed to capture it
+			// then we remove it from our list and update the state of our
+			// armies
 			for (Region enemyRegion : enemyRegions) {
 				if (neutralTargetRegions.contains(enemyRegion))
 					continue;
-				
+
 				int myArmies = fromRegion.getArmies()
 						- fromRegion.armiesNeededToDefend(possibleToRegions)
 						- 1;
 
 				if (myArmies <= 0)
 					break;
-				
+
 				int armiesNeededToAttack = enemyRegion.armiesNeededToCapture();
 
 				if (myArmies >= armiesNeededToAttack) {
 					attackTransferMoves.add(new AttackTransferMove(myName,
 							fromRegion, enemyRegion, armiesNeededToAttack));
-					
-					if (!enemyRegion.ownedByPlayer(myName) && !enemyRegion.ownedByPlayer(enemyName))
+
+					if (!enemyRegion.ownedByPlayer(myName)
+							&& !enemyRegion.ownedByPlayer(enemyName))
 						neutralTargetRegions.add(enemyRegion);
-					
+
 					possibleToRegions.remove(enemyRegion);
 					fromRegion.setArmies(fromRegion.getArmies()
 							- armiesNeededToAttack);

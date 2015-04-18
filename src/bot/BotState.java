@@ -44,7 +44,7 @@ public class BotState {
 
 	// wastelands, i.e. neutral regions with a larger amount of armies on them.
 	// Given before the picking of starting regions
-	private ArrayList<Region> wastelands;
+	static private ArrayList<Region> wastelands;
 
 	// list of all the opponent's moves, reset at the end of each round
 	private ArrayList<Move> opponentMoves;
@@ -308,7 +308,7 @@ public class BotState {
 		return pickableStartingRegions;
 	}
 
-	public ArrayList<Region> getWasteLands() {
+	static public ArrayList<Region> getWasteLands() {
 		return wastelands;
 	}
 

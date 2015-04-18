@@ -70,7 +70,17 @@ public class SuperRegion extends Territory {
 	 * @return The average value of the SuperRegion
 	 */
 	public float getValue() {
-		return (float) armiesReward / subRegions.size();
+		int armies = 0;
+		for (Region region : subRegions)
+			if (region.ownedByPlayer("unknown"))
+				if (BotState.getWasteLands().contains(region))
+					armies += 6;
+				else
+					armies += 2;
+			else
+				if (!region.ownedByPlayer(BotState.getMyPlayerNameStatic()))
+					armies += region.getArmies();
+		return (float) armiesReward / armies;
 	}
 
 	/**
