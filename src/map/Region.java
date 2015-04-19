@@ -174,14 +174,17 @@ public class Region extends Territory {
 		// minus its own armies
 		// getPriority() + armies = number of armies that can attack this Region
 		int enemyArmies = (int) Math.abs(priority + armies);
-		return (int) (Math.round((enemyArmies * 0.6)) - armies + 1);
+		int neededArmies = (int) Math.round((enemyArmies * 0.6)) - armies + 1;
+
+		setArmiesForDefense(neededArmies + armies);
+		return neededArmies;
 	}
 
 	/**
 	 * 
 	 * @param List
 	 *            of Regions to defend itself against
-	 * @return The number of armies this Region needs in oder to defend itself
+	 * @return The number of armies this Region needs in order to defend itself
 	 *         against the enemies contained in the list
 	 */
 	public int armiesNeededToDefend(List<Region> neighbors) {
@@ -191,7 +194,10 @@ public class Region extends Territory {
 			if (neighbor.ownedByPlayer(enemy))
 				enemyArmies += neighbor.getArmies() - 1;
 
-		return (int) (Math.round(enemyArmies * 0.6));
+		int neededArmies = (int) (Math.round(enemyArmies * 0.6)) + 1;
+
+		setArmiesForDefense(neededArmies);
+		return neededArmies;
 	}
 
 	public int getUnknownNeighbors() {

@@ -60,16 +60,7 @@ public class BotStarter implements Bot {
 
 		int regionId = max.getId();
 		Region startingRegion = state.getFullMap().getRegion(regionId);
-		SuperRegion superRegion = startingRegion.getSuperRegion();
-		LinkedList<SuperRegion> superRegToConquer = state
-				.getSuperRegToConquer();
 
-		// Add the SuperRegion to the list of SuperRegions we want
-		// to conquer
-		if (!superRegToConquer.contains(superRegion)) {
-			superRegion.computePriority();
-			superRegToConquer.add(superRegion);
-		}
 		return startingRegion;
 	}
 
@@ -98,7 +89,6 @@ public class BotStarter implements Bot {
 					placeArmiesMoves.add(new PlaceArmiesMove(name, region,
 							neededArmies));
 					region.setArmies(neededArmies + region.getArmies());
-					region.setArmiesForDefense(neededArmies);
 					armiesLeft -= neededArmies;
 				} else {
 					// fortify this region later
@@ -110,12 +100,13 @@ public class BotStarter implements Bot {
 
 			if (armiesLeft <= 0)
 				break;
-			else if (inDanger != null) {
-				placeArmiesMoves.add(new PlaceArmiesMove(name, inDanger,
-						armiesLeft));
-				inDanger.setArmies(armiesLeft + inDanger.getArmies());
-				armiesLeft = 0;
-			}
+		}
+
+		if (inDanger != null) {
+			placeArmiesMoves
+					.add(new PlaceArmiesMove(name, inDanger, armiesLeft));
+			inDanger.setArmies(armiesLeft + inDanger.getArmies());
+			armiesLeft = 0;
 		}
 
 		return armiesLeft;
@@ -153,7 +144,7 @@ public class BotStarter implements Bot {
 				// and deploy to the current region the necessary amount of
 				// armies needed to conquer
 				// those neighbors.
-				for (Region neighbor : neighbors)
+				for (Region neighbor : neighbors) {
 					if (!neighbor.ownedByPlayer(myName)
 							&& neighbor.getSuperRegion().getId() == superRegion
 									.getId()
@@ -169,10 +160,14 @@ public class BotStarter implements Bot {
 							if (armiesLeft >= toDeploy) {
 								placeArmiesMoves.add(new PlaceArmiesMove(
 										myName, region, toDeploy));
-								region.setArmies(region.getArmies() + toDeploy
-										- neededArmies);
+
 								state.addAttackTransferMove(new AttackTransferMove(
 										myName, region, neighbor, neededArmies));
+
+								// update the number of armies in the fromRegion
+								// after an attack
+								region.setArmies(region.getArmies() + toDeploy
+										- neededArmies);
 
 								if (!region.ownedByPlayer(enemyName)
 										&& !region.ownedByPlayer(myName))
@@ -193,16 +188,17 @@ public class BotStarter implements Bot {
 							}
 
 						if (armiesLeft <= 0)
-							break;
-						else if (notEnough != null) {
-							placeArmiesMoves.add(new PlaceArmiesMove(myName,
-									notEnough, armiesLeft));
-							notEnough.setArmies(armiesLeft
-									+ notEnough.getArmies());
-							armiesLeft = 0;
-						}
+							return armiesLeft;
 					}
+				}
 			}
+		}
+		if (notEnough != null) {
+			placeArmiesMoves.add(new PlaceArmiesMove(myName, notEnough,
+					armiesLeft));
+			notEnough.setArmies(armiesLeft + notEnough.getArmies());
+			armiesLeft = 0;
+			state.setNotEnoughRegion(notEnough);
 		}
 		return armiesLeft;
 	}
@@ -239,38 +235,25 @@ public class BotStarter implements Bot {
 		// want to capture (they were the attacks from the last round)
 		state.clearAttackTransferMove();
 		state.clearNeutralTargetRegions();
-
+		state.setNotEnoughRegion(null);
+		
 		// Get the list of the SuperRegions we want to conquer
 		LinkedList<SuperRegion> superRegionsToConquer = state
 				.getSuperRegToConquer();
 
-		// See if some of the targets are captured and remove them
-		for (int i = 0; i < superRegionsToConquer.size(); i++) {
+		// update superRegionsToConquer
+		superRegionsToConquer.clear();
+		for (Region region : edgeTerritories) {
+			LinkedList<Region> neighbors = region.getNeighbors();
 
-			SuperRegion superRegion = superRegionsToConquer.get(i);
-			SuperRegion superReg = state.getFullMap().getSuperRegion(
-					superRegion.getId());
+			for (Region neighbor : neighbors) {
+				SuperRegion superRegion = neighbor.getSuperRegion();
+				String owner = superRegion.ownedByPlayer();
 
-			if (superReg.ownedByPlayer().equals(myName)) {
-				superRegionsToConquer.remove(i);
-				i--;
-			}
-		}
-
-		// If we're done capturing all the planned SuperRegions, add new targets
-		if (superRegionsToConquer.isEmpty()) {
-			for (Region region : edgeTerritories) {
-				LinkedList<Region> neighbors = region.getNeighbors();
-
-				for (Region neighbor : neighbors) {
-					SuperRegion superRegion = neighbor.getSuperRegion();
-
-					if (!superRegion.ownedByPlayer().equals(myName)) {
-						if (!superRegionsToConquer.contains(superRegion)) {
-							superRegion.computePriority();
-							superRegionsToConquer.add(superRegion);
-						}
-					}
+				if ((owner == null || !owner.equals(myName))
+						&& !superRegionsToConquer.contains(superRegion)) {
+					superRegion.computePriority();
+					superRegionsToConquer.add(superRegion);
 				}
 			}
 		}
@@ -278,7 +261,7 @@ public class BotStarter implements Bot {
 		// Sort the SuperRegions by priority (the first we want to conquer
 		// is first)
 		state.sortTerritories(superRegionsToConquer);
-
+		
 		// If there are enemies neighboring our territories,
 		// defend our territories
 		if (!endageredTerritories.isEmpty()) {
@@ -288,8 +271,7 @@ public class BotStarter implements Bot {
 			if (armiesLeft <= 0)
 				return placeArmiesMoves;
 		}
-		
-		
+
 		// Deploy armies to the regions from which we want to expand
 		armiesLeft = deployToExpand(superRegionsToConquer, edgeTerritories,
 				armiesLeft, placeArmiesMoves, state);
@@ -411,12 +393,16 @@ public class BotStarter implements Bot {
 		LinkedList<Region> edgeRegions = state.getMyEdgeTerritories();
 		LinkedList<Region> neutralTargetRegions = state
 				.getNeutralTargetRegions();
+		Region notEnough = state.getNotEnoughRegion();
 
 		// we sort the edge territories in ascending order of their priorities
 		state.sortTerritories(edgeRegions);
 		Collections.reverse(edgeRegions);
 		LinkedList<SuperRegion> superRegionsToConquer = state
 				.getSuperRegToConquer();
+
+		if (notEnough != null) 
+			edgeRegions.remove(notEnough);
 
 		for (Region fromRegion : edgeRegions) {
 			// the regions we can attack from our current edgeRegion
@@ -434,7 +420,6 @@ public class BotStarter implements Bot {
 				if (!toRegion.getPlayerName().equals(myName)
 						&& fromRegion.getArmies() > toRegion
 								.armiesNeededToCapture()) {
-
 					// the neighbors will be sorted by their numbers of armies
 					int priority = toRegion.getArmies();
 
@@ -465,9 +450,11 @@ public class BotStarter implements Bot {
 			enemyRegions.addAll(enemiesInOurSuperRegion);
 			enemyRegions.addAll(enemiesNotInOurSuperRegion);
 
-			// if there is just one neighbor we attack it with all we have got if it's worth it
-			if (enemyRegions.size() == 1 && 
-					fromRegion.getArmies() * 0.6 > enemyRegions.get(0) .getArmies() * 0.7) {
+			// if there is just one neighbor we attack it with all we have got
+			// if it's worth it
+			if (enemyRegions.size() == 1
+					&& fromRegion.getArmies() * 0.6 > enemyRegions.get(0)
+							.getArmies() * 0.7) {
 				attackTransferMoves.add(new AttackTransferMove(myName,
 						fromRegion, enemyRegions.get(0),
 						fromRegion.getArmies() - 1));
@@ -478,12 +465,11 @@ public class BotStarter implements Bot {
 			// then we remove it from our list and update the state of our
 			// armies
 			for (Region enemyRegion : enemyRegions) {
-				if (neutralTargetRegions.contains(enemyRegion))
+				if (neutralTargetRegions.contains(enemyRegion)) 
 					continue;
 
 				int myArmies = fromRegion.getArmies()
-						- fromRegion.armiesNeededToDefend(possibleToRegions)
-						- 1;
+						- fromRegion.armiesNeededToDefend(possibleToRegions);
 
 				if (myArmies <= 0)
 					break;

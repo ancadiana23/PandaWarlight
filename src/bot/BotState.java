@@ -72,6 +72,8 @@ public class BotState {
 
 	//the list of neutral target regions to conquer 
 	private LinkedList<Region> neutralTargetRegions;
+	
+	private Region notEnough;
 	/**
 	 * Constructor.
 	 */
@@ -82,6 +84,7 @@ public class BotState {
 		myInnerTerritories = new LinkedList<Region>();
 		attackTransferMoves = new ArrayList<AttackTransferMove>();
 		neutralTargetRegions = new LinkedList<Region>();
+		notEnough = null;
 	}
 
 	/**
@@ -331,6 +334,14 @@ public class BotState {
 	public LinkedList<Region> getNeutralTargetRegions() {
 		return neutralTargetRegions;
 	}
+	
+	public Region getNotEnoughRegion() {
+		return notEnough;
+	}
+	
+	public void setNotEnoughRegion(Region notEnough) {
+		this.notEnough = notEnough;
+	}
 
 	/**
 	 * Adds an AttackTransferMove to the list of attackTransferMoves.
@@ -339,10 +350,6 @@ public class BotState {
 	 */
 	public void addAttackTransferMove(AttackTransferMove move) {
 		attackTransferMoves.add(move);
-		Region fromRegion = move.getFromRegion();
-		
-		//update the number of armies in the fromRegion after an attack
-		fromRegion.setArmies(fromRegion.getArmies() - move.getArmies());
 	}
 
 	/**
