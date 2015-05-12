@@ -200,15 +200,6 @@ public class Region extends Territory {
 		return neededArmies;
 	}
 
-	public int getUnknownNeighbors() {
-		int counter = 0;
-		for (Region neighbor : neighbors) {
-			if (neighbor.ownedByPlayer("unknown") && neighbor.armies == 0)
-				counter++;
-		}
-		return counter;
-	}
-
 	/**
 	 * 
 	 * @param Name
@@ -224,17 +215,24 @@ public class Region extends Territory {
 		}
 		return counter;
 	}
-
-	public int getNeutralNeighbors(String enemy, String me) {
+	
+	/**
+	 * Calculates the number of unfriendly territories (enemy or neutral)
+	 * neighboring this region.
+	 * @param me
+	 * 		your name
+	 * @return
+	 * 		the number of unfriendly territories
+	 * 		neighboring this region
+	 */
+	public int getUnfriendlyNeighbors(String me) {
 		int counter = 0;
 		for (Region neighbor : neighbors) {
-			if (!neighbor.ownedByPlayer(enemy) && !neighbor.ownedByPlayer(me)
-					&& neighbor.armies != 0)
+			if (!neighbor.ownedByPlayer(me))
 				counter++;
 		}
 		return counter;
 	}
-
 	/**
 	 * Regions are to be sorted in descending order of the armies the Bot needs
 	 * to add to them

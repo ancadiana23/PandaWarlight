@@ -99,7 +99,7 @@ public class BotStarter implements Bot {
 				}
 
 			if (armiesLeft <= 0)
-				break;
+				return armiesLeft;
 		}
 
 		if (inDanger != null) {
@@ -149,10 +149,11 @@ public class BotStarter implements Bot {
 							&& neighbor.getSuperRegion().getId() == superRegion
 									.getId()
 							&& !neutralTargetRegions.contains(neighbor)) {
-
+						
+						
 						int neededArmies = neighbor.armiesNeededToCapture();
 						int toDeploy = neededArmies - region.getArmies() + 1;
-
+						
 						if (region.getArmiesForDefense() > 0)
 							toDeploy += region.getArmiesForDefense();
 
@@ -160,18 +161,18 @@ public class BotStarter implements Bot {
 							if (armiesLeft >= toDeploy) {
 								placeArmiesMoves.add(new PlaceArmiesMove(
 										myName, region, toDeploy));
-
+								
 								state.addAttackTransferMove(new AttackTransferMove(
 										myName, region, neighbor, neededArmies));
-
+								
 								// update the number of armies in the fromRegion
 								// after an attack
 								region.setArmies(region.getArmies() + toDeploy
 										- neededArmies);
 
-								if (!region.ownedByPlayer(enemyName)
-										&& !region.ownedByPlayer(myName))
-									neutralTargetRegions.add(region);
+								if (!neighbor.ownedByPlayer(enemyName)
+										&& !neighbor.ownedByPlayer(myName))
+									neutralTargetRegions.add(neighbor);
 
 								armiesLeft -= toDeploy;
 							}
@@ -193,6 +194,10 @@ public class BotStarter implements Bot {
 				}
 			}
 		}
+		
+		if (armiesLeft <= 0)
+			return armiesLeft;
+		
 		if (notEnough != null) {
 			placeArmiesMoves.add(new PlaceArmiesMove(myName, notEnough,
 					armiesLeft));
@@ -213,6 +218,7 @@ public class BotStarter implements Bot {
 	 */
 	public ArrayList<PlaceArmiesMove> getPlaceArmiesMoves(BotState state,
 			Long timeOut) {
+		
 		ArrayList<PlaceArmiesMove> placeArmiesMoves = new ArrayList<PlaceArmiesMove>();
 		String myName = state.getMyPlayerName();
 		int armiesLeft = state.getStartingArmies();
@@ -285,7 +291,7 @@ public class BotStarter implements Bot {
 
 		placeArmiesMoves.add(new PlaceArmiesMove(myName, region, armiesLeft));
 		region.setArmies(armiesLeft + region.getArmies());
-
+		
 		return placeArmiesMoves;
 	}
 
@@ -307,7 +313,7 @@ public class BotStarter implements Bot {
 		// We process every region that has idle armies
 		for (Region innerRegion : innerRegions)
 			if (innerRegion.getArmies() > 1) {
-
+				
 				LinkedList<Region> edgeNeighbors = new LinkedList<Region>();
 				LinkedList<Region> neighbors = innerRegion.getNeighbors();
 
@@ -328,7 +334,7 @@ public class BotStarter implements Bot {
 					// neighbor we found it from
 					LinkedList<Region> from = new LinkedList<Region>();
 					from.addAll(neighbors);
-
+					
 					// We reuse edgeNeighbors as a queue
 					ArrayList<Region> temp = new ArrayList<Region>();
 					edgeNeighbors = neighbors;
@@ -358,13 +364,14 @@ public class BotStarter implements Bot {
 					if (!temp.isEmpty()) {
 						state.sortTerritories(temp);
 
-						for (int i = 0; i < edgeNeighbors.size(); ++i)
+						for (int i = 0; i < edgeNeighbors.size(); ++i) {
 							if (edgeNeighbors.get(i) == temp.get(0)) {
 								res.add(new AttackTransferMove(state
 										.getMyPlayerName(), innerRegion, from
 										.get(i), innerRegion.getArmies() - 1));
 								break;
 							}
+						}
 					}
 				}
 			}
@@ -384,8 +391,10 @@ public class BotStarter implements Bot {
 
 		// the first moves are the transfers in order to defend our edge regions
 		ArrayList<AttackTransferMove> attackTransferMoves = getIdleArmiesTransferMoves(state);
+	    
 		// after the transfer the Bot executes the moves decides in the Extend
 		// part of the Deployment
+	    
 		attackTransferMoves.addAll(state.getAttackTransferMoves());
 
 		String myName = state.getMyPlayerName();
@@ -452,12 +461,24 @@ public class BotStarter implements Bot {
 
 			// if there is just one neighbor we attack it with all we have got
 			// if it's worth it
-			if (enemyRegions.size() == 1
+			if (fromRegion.getUnfriendlyNeighbors(myName) == 1 && enemyRegions.size() == 1
 					&& fromRegion.getArmies() * 0.6 > enemyRegions.get(0)
-							.getArmies() * 0.7) {
-				attackTransferMoves.add(new AttackTransferMove(myName,
+							.getArmies() * 0.7
+					&& !neutralTargetRegions.contains(enemyRegions.get(0))) {
+				AttackTransferMove move = new AttackTransferMove(myName,
 						fromRegion, enemyRegions.get(0),
-						fromRegion.getArmies() - 1));
+						fromRegion.getArmies() - 1);
+				
+				if (attackTransferMoves.contains(move))
+					//If we already have an attack from this region to
+					//this enemy region, we remove it and add our new 
+					//attack. The removed move may not have the same 
+					//number of armies, because we have overridden the
+					//equals method of the AttackTransferMove class
+					attackTransferMoves.remove(move);
+				
+				//Add the new move
+				attackTransferMoves.add(move);
 				continue;
 			}
 			// otherwise we attack each neighbor with the exact number of armies
@@ -467,21 +488,36 @@ public class BotStarter implements Bot {
 			for (Region enemyRegion : enemyRegions) {
 				if (neutralTargetRegions.contains(enemyRegion)) 
 					continue;
-
+				
+				
 				int myArmies = fromRegion.getArmies()
 						- fromRegion.armiesNeededToDefend(possibleToRegions);
-
+				
 				if (myArmies <= 0)
 					break;
 
 				int armiesNeededToAttack = enemyRegion.armiesNeededToCapture();
-
+				
 				if (myArmies >= armiesNeededToAttack) {
-					attackTransferMoves.add(new AttackTransferMove(myName,
-							fromRegion, enemyRegion, armiesNeededToAttack));
+					AttackTransferMove move = new AttackTransferMove(myName,
+							fromRegion, enemyRegion, armiesNeededToAttack);
+					
+					if (attackTransferMoves.contains(move))
+						//If we already have an attack from this region to
+						//this enemy region, we remove it and add our new 
+						//attack. The removed move may not have the same 
+						//number of armies, because we have overridden the
+						//equals method of the AttackTransferMove class
+						attackTransferMoves.remove(move);
+					
+					//Add the new move
+					attackTransferMoves.add(move);
 
+					//If it's a neutral region, add it to the list of
+					//neutralTargetRegions
 					if (!enemyRegion.ownedByPlayer(myName)
-							&& !enemyRegion.ownedByPlayer(enemyName))
+							&& !enemyRegion.ownedByPlayer(enemyName)
+							&& !neutralTargetRegions.contains(enemyRegion))
 						neutralTargetRegions.add(enemyRegion);
 
 					possibleToRegions.remove(enemyRegion);
@@ -490,7 +526,7 @@ public class BotStarter implements Bot {
 				}
 			}
 		}
-
+		
 		return attackTransferMoves;
 	}
 

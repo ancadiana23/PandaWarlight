@@ -68,5 +68,16 @@ public class AttackTransferMove extends Move {
 		else
 			return getPlayerName() + " illegal_move " + getIllegalMove();
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		AttackTransferMove move = (AttackTransferMove)o;
+		if (fromRegion.getId() == move.fromRegion.getId() &&
+				toRegion.getId() == move.toRegion.getId())
+			return true;
+		
+		return false;
+			
+	}
 
 }
